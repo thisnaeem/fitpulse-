@@ -1,0 +1,97 @@
+import React from 'react';
+import { Pressable, ScrollView, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import { C, R } from '../../theme';
+import { Tx, Card, SectionHead } from '../../ui';
+import { Icon, type IconName } from '../../icons';
+import { useFit } from '../../store';
+import { useAuth } from '../../auth';
+import { AdBanner } from '../../ads';
+
+const GOAL_LABEL: Record<string, string> = {
+  lose_weight: 'Wazan kam karna', build_muscle: 'Muscle banana', stay_fit: 'Fit rehna',
+};
+
+export default function Profile() {
+  const fit = useFit();
+  const auth = useAuth();
+  const router = useRouter();
+  const p = fit.profile;
+  const initials = (auth.user?.name || p.name || 'F').trim().charAt(0).toUpperCase();
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={['top']}>
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
+        <Tx size={27} w="xbold">Profile</Tx>
+
+        <Card style={{ marginTop: 18, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+          <LinearGradient colors={[C.lime2, C.lime]} style={{ width: 60, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center' }}>
+            <Tx size={26} w="xbold" color={C.ink}>{initials}</Tx>
+          </LinearGradient>
+          <View style={{ flex: 1 }}>
+            <Tx size={18} w="xbold">{auth.user?.name || p.name || 'Guest User'}</Tx>
+            <Tx dim size={13} style={{ marginTop: 2 }}>{auth.user ? auth.user.email : 'Local mode — data sirf is phone mein'}</Tx>
+            <View style={{ alignSelf: 'flex-start', marginTop: 7, backgroundColor: C.lime + '1F', borderRadius: R.pill, paddingHorizontal: 10, paddingVertical: 3 }}>
+              <Tx size={11.5} w="bold" color={C.lime}>Goal: {GOAL_LABEL[p.goal]}</Tx>
+            </View>
+          </View>
+        </Card>
+
+        <View style={{ flexDirection: 'row', gap: 12, marginTop: 14 }}>
+          <Card style={{ flex: 1 }}>
+            <Tx dim size={11.5} w="semi">QAD / WAZAN</Tx>
+            <Tx size={16.5} w="bold" style={{ marginTop: 5 }}>{p.heightCm} cm · {fit.weights[fit.weights.length - 1]} kg</Tx>
+          </Card>
+          <Card style={{ flex: 1 }}>
+            <Tx dim size={11.5} w="semi">FAVORITES</Tx>
+            <Tx size={16.5} w="bold" style={{ marginTop: 5 }}>{fit.favorites.length} workouts</Tx>
+          </Card>
+        </View>
+
+        <SectionHead title="Account" />
+        {auth.user ? (
+          <>
+            <Row icon="check" label="Cloud sync on hai" sub="Data Neon backend mein mehfooz hai" />
+            <Row icon="share" label="Abhi sync karo" onPress={() => auth.syncNow()} />
+            <Row icon="logout" label="Logout" danger onPress={() => auth.logout()} />
+          </>
+        ) : (
+          <>
+            <Row icon="user" label="Login karo" sub={auth.backendLive ? 'Apna progress har phone par pao' : 'Backend deploy hote hi login chalega'} onPress={() => router.push('/auth/login')} />
+            <Row icon="sparkles" label="Account banayein" sub="Muft hai — 30 second lageinge" onPress={() => router.push('/auth/register')} />
+          </>
+        )}
+
+        <SectionHead title="Settings" />
+        <Row icon="water" label="Roz ka paani goal" sub={`${fit.waterGoal} glasses`} />
+        <Row icon="bell" label="Workout reminder" sub="Jald aa raha hai" />
+        <Row icon="settings" label="Plan dobara set karo" sub="Onboarding phir se chalao" onPress={() => fit.setProfile({ onboarded: false })} />
+
+        <SectionHead title="About" />
+        <Row icon="heart" label="FitPulse v1.1" sub="Ghar baithe fitness, bina gym ke" />
+        <AdBanner style={{ marginTop: 18 }} />
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+function Row({ icon, label, sub, onPress, danger }: {
+  icon: IconName; label: string; sub?: string; onPress?: () => void; danger?: boolean;
+}) {
+  return (
+    <Pressable onPress={onPress}>
+      <Card style={{ marginBottom: 10, flexDirection: 'row', alignItems: 'center', gap: 13, padding: 15 }}>
+        <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: C.card2, alignItems: 'center', justifyContent: 'center' }}>
+          <Icon name={icon} size={19} color={danger ? C.red : C.muted} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Tx size={14.5} w="semi" color={danger ? C.red : C.text}>{label}</Tx>
+          {sub ? <Tx dim size={12} style={{ marginTop: 1 }}>{sub}</Tx> : null}
+        </View>
+        {onPress ? <Icon name="chevron" size={18} color={C.faint} /> : null}
+      </Card>
+    </Pressable>
+  );
+}

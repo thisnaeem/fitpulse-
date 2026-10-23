@@ -1,0 +1,62 @@
+{
+  "expo": {
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#3E7C0F",
+        "foregroundImage": "./assets/adaptive-icon.png"
+      },
+      "package": "com.fitpulse.fitnessapp",
+      "predictiveBackGestureEnabled": false,
+      "versionCode": 2
+    },
+    "backgroundColor": "#0C0F11",
+    "icon": "./assets/icon.png",
+    "ios": {
+      "bundleIdentifier": "com.fitpulse.fitnessapp",
+      "supportsTablet": true
+    },
+    "name": "FitPulse",
+    "orientation": "portrait",
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0C0F11",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 220
+        }
+      ],
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-3940256099942544~3347511713"
+        }
+      ]
+    ],
+    "scheme": "fitpulse",
+    "slug": "fitpulse",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0C0F11"
+    },
+    "userInterfaceStyle": "dark",
+    "version": "1.1.0",
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "50aeb6fe-c390-4447-b246-13a9a8408f8d"
+      }
+    },
+    "owner": "tetralioncapital"
+  }
+}
