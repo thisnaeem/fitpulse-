@@ -31,9 +31,9 @@ export default function Workouts() {
         ListHeaderComponent={
           <View>
             <Tx size={27} w="xbold">Workouts</Tx>
-            <Tx dim size={14} style={{ marginTop: 5 }}>{WORKOUTS.length} guided programs — sab ghar par, bina equipment</Tx>
+            <Tx dim size={14} style={{ marginTop: 5 }}>{WORKOUTS.length} guided programs — all at home, no equipment</Tx>
             <View style={{ marginTop: 16 }}>
-              <Field icon="search" placeholder="Workout dhoondo…" value={query} onChangeText={setQuery} />
+              <Field icon="search" placeholder="Search workouts…" value={query} onChangeText={setQuery} />
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 14, marginBottom: 16 }}>
               <View style={{ flexDirection: 'row', flex: 1 }}>
@@ -48,7 +48,7 @@ export default function Workouts() {
             </View>
           </View>
         }
-        ListEmptyComponent={<Tx dim size={14} style={{ textAlign: 'center', marginTop: 36 }}>Koi workout nahi mila — filter badal kar dekho.</Tx>}
+        ListEmptyComponent={<Tx dim size={14} style={{ textAlign: 'center', marginTop: 36 }}>No workouts found — try a different filter.</Tx>}
         renderItem={({ item }) => (
           <WorkoutCard w={item} onPress={() => router.push(`/workout/${item.id}`)}
             fav={fit.favorites.includes(item.id)} onFav={() => fit.toggleFavorite(item.id)} />

@@ -29,8 +29,8 @@ export default function Login() {
         <Pressable onPress={() => router.back()} hitSlop={10} style={{ marginBottom: 20 }}>
           <Icon name="left" size={24} color={C.text} />
         </Pressable>
-        <Tx size={30} w="xbold">Wapas khush aamdeed</Tx>
-        <Tx dim size={15} style={{ marginTop: 8 }}>Login karo — tumhara progress cloud se wapas aa jayega.</Tx>
+        <Tx size={30} w="xbold">Welcome back</Tx>
+        <Tx dim size={15} style={{ marginTop: 8 }}>Log in — your progress will be restored from the cloud.</Tx>
 
         <View style={{ gap: 12, marginTop: 28 }}>
           <Field icon="mail" placeholder="Email address" value={email} onChangeText={setEmail} keyboard="email-address" />
@@ -38,11 +38,11 @@ export default function Login() {
         </View>
         {err ? <Tx size={13} w="semi" color={C.red} style={{ marginTop: 14 }}>{err}</Tx> : null}
         <View style={{ height: 20 }} />
-        <PrimaryButton label={busy ? 'Login ho raha hai…' : 'Login'} onPress={submit} disabled={busy} />
+        <PrimaryButton label={busy ? 'Logging in…' : 'Log in'} onPress={submit} disabled={busy} />
         <View style={{ height: 12 }} />
-        <GhostButton label="Google se login (jald aa raha hai)" icon="google" onPress={() => setErr('Google login ke liye Google Cloud setup baqi hai — email se login kar lo.')} />
+        <GhostButton label="Continue with Google (coming soon)" icon="google" onPress={() => setErr('Google sign-in needs a quick setup first — please log in with email for now.')} />
         <Pressable onPress={() => router.replace('/auth/register')} style={{ alignItems: 'center', marginTop: 20 }}>
-          <Tx dim size={14}>Account nahi hai? <Tx size={14} w="bold" color={C.lime}>Register karo</Tx></Tx>
+          <Tx dim size={14}>Don't have an account? <Tx size={14} w="bold" color={C.lime}>Register</Tx></Tx>
         </Pressable>
       </ScrollView>
     </SafeAreaView>

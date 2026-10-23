@@ -1,9 +1,10 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle } from 'react-native-svg';
 import { C, F, R, SHADOW } from './theme';
 import { Icon, type IconName } from './icons';
+import { workoutImage } from './workoutImages';
 import type { Workout } from './data';
 
 export function Tx({ children, style, dim, size = 14, w = 'med', color }: {
@@ -110,11 +111,16 @@ export function Ring({ size = 150, stroke = 13, progress, color = C.lime, childr
 export function WorkoutCard({ w, onPress, fav, onFav }: {
   w: Workout; onPress: () => void; fav?: boolean; onFav?: () => void;
 }) {
+  const img = workoutImage(w.id);
   return (
     <Pressable onPress={onPress} style={styles.wcard}>
-      <LinearGradient colors={[w.tint + '33', w.tint + '0D']} style={styles.wicon}>
-        <Icon name={w.icon} size={30} color={w.tint} strokeWidth={1.9} />
-      </LinearGradient>
+      {img ? (
+        <Image source={img} style={styles.wimg} resizeMode="cover" />
+      ) : (
+        <LinearGradient colors={[w.tint + '33', w.tint + '0D']} style={styles.wicon}>
+          <Icon name={w.icon} size={30} color={w.tint} strokeWidth={1.9} />
+        </LinearGradient>
+      )}
       <View style={{ flex: 1, marginLeft: 14 }}>
         <Tx size={16} w="bold">{w.title}</Tx>
         <Tx dim size={12.5} style={{ marginTop: 3 }}>{w.focus} · {w.level}</Tx>
@@ -153,5 +159,6 @@ const styles = StyleSheet.create({
   fieldInput: { flex: 1, fontFamily: F.med, fontSize: 15, color: C.text, paddingVertical: 10 },
   wcard: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.card, borderWidth: 1, borderColor: C.border, borderRadius: R.lg, padding: 14, marginBottom: 12, ...SHADOW },
   wicon: { width: 64, height: 64, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  wimg: { width: 78, height: 78, borderRadius: 16 },
   meta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
 });

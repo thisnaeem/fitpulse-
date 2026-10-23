@@ -1,13 +1,34 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Polyline, Circle as SvgCircle } from 'react-native-svg';
+import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Polyline, Polygon, Circle as SvgCircle } from 'react-native-svg';
 import { useRouter } from 'expo-router';
 import { C, R } from '../../theme';
 import { Tx, Card, NumField, PrimaryButton, SectionHead } from '../../ui';
 import { Icon } from '../../icons';
-import { useFit } from '../../store';
+import { useFit, localDateKey, type Session } from '../../store';
 import { ACHIEVEMENTS } from '../../data';
+import { levelFromXp, achievementValue, isAchievementUnlocked, type GameStats } from '../../game';
+
+function minutesByDay(sessions: Session[], daysBack: number) {
+  const out: { key: string; label: string; minutes: number; isToday: boolean }[] = [];
+  for (let i = daysBack - 1; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const key = localDateKey(d);
+    const minutes = sessions
+      .filter(s => localDateKey(new Date(s.date)) === key)
+      .reduce((sum, s) => sum + s.minutes, 0);
+    out.push({
+      key,
+      label: d.toLocaleDateString('en-US', { weekday: 'narrow' }),
+      minutes,
+      isToday: i === 0,
+    });
+  }
+  return out;
+}
 
 export default function Progress() {
   const fit = useFit();
@@ -15,48 +36,127 @@ export default function Progress() {
   const [newWeight, setNewWeight] = useState('');
   const days = Array.from({ length: 30 }, (_, i) => i + 1);
 
+  const lvl = levelFromXp(fit.xp);
+  const stats: GameStats = useMemo(() => ({
+    doneWorkouts: fit.doneWorkouts,
+    streakDays: fit.streakDays,
+    xp: fit.xp,
+    weightsCount: fit.weights.length,
+    challengeDays: fit.challenge.length,
+  }), [fit.doneWorkouts, fit.streakDays, fit.xp, fit.weights.length, fit.challenge.length]);
+  const unlockedCount = ACHIEVEMENTS.filter(a => isAchievementUnlocked(a, stats)).length;
+
+  const week = useMemo(() => minutesByDay(fit.sessions, 7), [fit.sessions]);
+  const weekMax = Math.max(10, ...week.map(d => d.minutes));
+
+  const estKcal = Math.round(fit.totalMinutes * 7);
+
   const ws = fit.weights;
   const min = Math.min(...ws) - 0.6, max = Math.max(...ws) + 0.6;
-  const pts = ws.map((v, i) => `${(i / Math.max(1, ws.length - 1)) * 300},${64 - ((v - min) / (max - min)) * 56}`).join(' ');
-  const totalKcal = fit.sessions.reduce((s, x) => s + x.kcal, 0);
-  const totalMin = fit.sessions.reduce((s, x) => s + x.minutes, 0);
+  const linePts = ws.map((v, i) => `${(i / Math.max(1, ws.length - 1)) * 300},${64 - ((v - min) / (max - min)) * 56}`).join(' ');
+  const areaPts = ws.length > 1 ? `0,72 ${linePts} 300,72` : '';
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={['top']}>
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
         <Tx size={27} w="xbold">Progress</Tx>
-        <Tx dim size={14} style={{ marginTop: 5 }}>Tumhari mehnat, aqaida numbers mein</Tx>
+        <Tx dim size={14} style={{ marginTop: 5 }}>Your hard work, in real numbers</Tx>
 
-        <View style={{ flexDirection: 'row', gap: 12, marginTop: 18 }}>
+        {/* Level card */}
+        <LinearGradient colors={['#2C3A12', '#171D0B']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          style={{ borderRadius: R.xl, padding: 18, marginTop: 18, borderWidth: 1, borderColor: C.lime + '3D' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+            <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: C.lime, alignItems: 'center', justifyContent: 'center' }}>
+              <Tx size={19} w="xbold" color={C.ink}>{lvl.level}</Tx>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Tx size={12} w="xbold" color={C.lime}>LEVEL {lvl.level}</Tx>
+              <Tx size={21} w="xbold" style={{ marginTop: 1 }}>{lvl.title}</Tx>
+            </View>
+            <View style={{ alignItems: 'flex-end' }}>
+              <Tx size={20} w="xbold">{fit.xp}</Tx>
+              <Tx dim size={11} w="semi">TOTAL XP</Tx>
+            </View>
+          </View>
+          <View style={{ height: 10, borderRadius: 5, backgroundColor: '#00000055', marginTop: 16, overflow: 'hidden' }}>
+            <LinearGradient colors={[C.lime2, C.lime]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+              style={{ width: `${lvl.progress * 100}%`, height: 10, borderRadius: 5 }} />
+          </View>
+          <Tx dim size={12} style={{ marginTop: 8 }}>{lvl.into} / {lvl.needed} XP — {lvl.needed - lvl.into} XP to Level {lvl.level + 1}</Tx>
+        </LinearGradient>
+
+        {/* Streak + totals */}
+        <View style={{ flexDirection: 'row', gap: 12, marginTop: 14 }}>
+          <LinearGradient colors={['#3A2408', '#1D1406']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            style={{ flex: 1.15, borderRadius: R.lg, padding: 16, borderWidth: 1, borderColor: C.amber + '40' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+              <Icon name="flame" size={19} color={C.amber} />
+              <Tx size={12} w="xbold" color={C.amber}>STREAK</Tx>
+            </View>
+            <Tx size={30} w="xbold" style={{ marginTop: 8 }}>{fit.streakDays} <Tx size={15} dim>day{fit.streakDays === 1 ? '' : 's'}</Tx></Tx>
+            <Tx dim size={12} style={{ marginTop: 3 }}>{fit.streakDays > 0 ? 'Keep the fire alive — train today!' : 'Finish a workout to start your streak.'}</Tx>
+          </LinearGradient>
+          <Card style={{ flex: 1, justifyContent: 'center' }}>
+            <Tx size={24} w="xbold">{unlockedCount}<Tx size={14} dim>/{ACHIEVEMENTS.length}</Tx></Tx>
+            <Tx dim size={11.5} w="semi" style={{ marginTop: 2 }}>BADGES UNLOCKED</Tx>
+          </Card>
+        </View>
+
+        <View style={{ flexDirection: 'row', gap: 12, marginTop: 12 }}>
           <Card style={{ flex: 1, alignItems: 'center', paddingVertical: 14 }}>
             <Tx size={24} w="xbold">{fit.doneWorkouts}</Tx><Tx dim size={11.5} w="semi" style={{ marginTop: 2 }}>WORKOUTS</Tx>
           </Card>
           <Card style={{ flex: 1, alignItems: 'center', paddingVertical: 14 }}>
-            <Tx size={24} w="xbold">{totalMin}</Tx><Tx dim size={11.5} w="semi" style={{ marginTop: 2 }}>MINUTES</Tx>
+            <Tx size={24} w="xbold">{fit.totalMinutes}</Tx><Tx dim size={11.5} w="semi" style={{ marginTop: 2 }}>MINUTES</Tx>
           </Card>
           <Card style={{ flex: 1, alignItems: 'center', paddingVertical: 14 }}>
-            <Tx size={24} w="xbold">{totalKcal}</Tx><Tx dim size={11.5} w="semi" style={{ marginTop: 2 }}>KCAL BURN</Tx>
+            <Tx size={24} w="xbold">{estKcal}</Tx><Tx dim size={11.5} w="semi" style={{ marginTop: 2 }}>EST. KCAL</Tx>
           </Card>
         </View>
 
-        <SectionHead title="Wazan ka safar" />
+        {/* Last 7 days */}
+        <SectionHead title="Last 7 days" />
+        <Card>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-end', height: 108 }}>
+            {week.map(d => (
+              <View key={d.key} style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-end', height: '100%' }}>
+                <Tx size={11} w="bold" color={d.isToday ? C.lime : C.muted}>{d.minutes > 0 ? d.minutes : ''}</Tx>
+                <View style={{
+                  width: 24, marginTop: 5, borderRadius: 7,
+                  height: Math.max(4, (d.minutes / weekMax) * 66),
+                  backgroundColor: d.minutes === 0 ? C.ringTrack : d.isToday ? C.lime : C.lime + '59',
+                }} />
+                <Tx size={11} w={d.isToday ? 'bold' : 'semi'} color={d.isToday ? C.lime : C.faint} style={{ marginTop: 7 }}>{d.label}</Tx>
+              </View>
+            ))}
+          </View>
+          <Tx dim size={12} style={{ marginTop: 10 }}>Minutes trained per day. Today is highlighted — make it count.</Tx>
+        </Card>
+
+        {/* Weight journey */}
+        <SectionHead title="Weight journey" />
         <Card>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <Tx size={15} w="bold">{ws[ws.length - 1]} kg <Tx dim size={12.5}>abhi</Tx></Tx>
+            <Tx size={15} w="bold">{ws[ws.length - 1]} kg <Tx dim size={12.5}>current</Tx></Tx>
             <Tx size={12.5} w="semi" color={ws[ws.length - 1] <= ws[0] ? C.lime : C.muted}>
-              kul: {(ws[ws.length - 1] - ws[0]).toFixed(1)} kg
+              total: {(ws[ws.length - 1] - ws[0]).toFixed(1)} kg
             </Tx>
           </View>
           <Svg width="100%" height={76} viewBox="0 0 300 72" style={{ marginTop: 10 }}>
-            <Polyline points={pts} fill="none" stroke={C.lime} strokeWidth={3} strokeLinejoin="round" strokeLinecap="round" />
+            {areaPts ? <Polygon points={areaPts} fill={C.lime} opacity={0.08} /> : null}
+            <Polyline points={linePts} fill="none" stroke={C.lime} strokeWidth={3} strokeLinejoin="round" strokeLinecap="round" />
             {ws.map((v, i) => (
               <SvgCircle key={i} cx={(i / Math.max(1, ws.length - 1)) * 300} cy={64 - ((v - min) / (max - min)) * 56} r={4} fill={C.bg} stroke={C.lime} strokeWidth={2.5} />
             ))}
           </Svg>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <Tx dim size={11}>start {ws[0]} kg</Tx>
+            <Tx dim size={11}>{ws.length} entries</Tx>
+          </View>
           <View style={{ flexDirection: 'row', gap: 12, marginTop: 14, alignItems: 'flex-end' }}>
-            <NumField label="Naya wazan" value={newWeight} onChange={setNewWeight} unit="kg" />
+            <NumField label="New weight" value={newWeight} onChange={setNewWeight} unit="kg" />
             <View style={{ flex: 1.2 }}>
-              <PrimaryButton label="Add karo" icon="plus" onPress={() => {
+              <PrimaryButton label="Add" icon="plus" onPress={() => {
                 const v = parseFloat(newWeight);
                 if (!isNaN(v) && v > 20 && v < 400) { fit.addWeight(v); setNewWeight(''); }
               }} />
@@ -64,24 +164,37 @@ export default function Progress() {
           </View>
         </Card>
 
-        <SectionHead title="Badges" />
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
+        {/* Achievements grid */}
+        <SectionHead title="Achievements" action={`${unlockedCount}/${ACHIEVEMENTS.length}`} />
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
           {ACHIEVEMENTS.map(a => {
-            const got = fit.doneWorkouts >= a.need;
+            const value = achievementValue(a, stats);
+            const got = isAchievementUnlocked(a, stats);
             return (
               <View key={a.id} style={{
-                width: 118, alignItems: 'center', padding: 14, borderRadius: R.lg,
+                width: '48.5%', padding: 14, borderRadius: R.lg,
                 backgroundColor: got ? '#FFB02014' : C.card, borderWidth: 1, borderColor: got ? '#FFB02055' : C.border,
-                opacity: got ? 1 : 0.55,
+                opacity: got ? 1 : 0.75,
               }}>
-                <Icon name={a.icon} size={30} color={got ? C.amber : C.faint} />
-                <Tx size={12.5} w="bold" style={{ marginTop: 8, textAlign: 'center' }}>{a.title}</Tx>
-                <Tx dim size={10.5} style={{ marginTop: 3, textAlign: 'center' }}>{a.desc}</Tx>
+                <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                  <Icon name={a.icon} size={28} color={got ? C.amber : C.faint} />
+                  {got
+                    ? <Icon name="check" size={17} color={C.lime} strokeWidth={2.4} />
+                    : <Tx size={11} w="bold" dim>{value}/{a.need}</Tx>}
+                </View>
+                <Tx size={13.5} w="bold" style={{ marginTop: 9 }}>{a.title}</Tx>
+                <Tx dim size={11.5} style={{ marginTop: 3, lineHeight: 16 }}>{a.desc}</Tx>
+                {!got ? (
+                  <View style={{ height: 5, borderRadius: 3, backgroundColor: C.ringTrack, marginTop: 10, overflow: 'hidden' }}>
+                    <View style={{ width: `${Math.min(100, (value / a.need) * 100)}%`, height: 5, backgroundColor: C.amber, borderRadius: 3 }} />
+                  </View>
+                ) : null}
               </View>
             );
           })}
-        </ScrollView>
+        </View>
 
+        {/* 30-day challenge */}
         <SectionHead title="30-Day Challenge" action={`${fit.challenge.length}/30`} />
         <Card>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
@@ -98,12 +211,13 @@ export default function Progress() {
               );
             })}
           </View>
-          <Tx dim size={12.5} style={{ marginTop: 12 }}>Har din workout karke din mark karo — 30 din ki chain todna mat!</Tx>
+          <Tx dim size={12.5} style={{ marginTop: 12 }}>Train every day and mark it off — don't break the 30-day chain!</Tx>
         </Card>
 
+        {/* Recent sessions */}
         <SectionHead title="Recent workouts" />
         {fit.sessions.length === 0 ? (
-          <Card><Tx dim size={13.5}>Abhi koi workout complete nahi hua. Pehla aaj hi kar lo!</Tx></Card>
+          <Card><Tx dim size={13.5}>No workouts completed yet. Finish your first one today!</Tx></Card>
         ) : fit.sessions.slice(0, 8).map((s, i) => (
           <Pressable key={i} onPress={() => router.push(`/workout/${s.workoutId}`)}>
             <Card style={{ marginBottom: 10, flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14 }}>

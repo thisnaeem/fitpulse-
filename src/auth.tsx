@@ -52,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       method: 'PUT', token: tok,
       body: {
         profile: { goal: s.profile.goal, gender: s.profile.gender, age: s.profile.age, height_cm: s.profile.heightCm, onboarded: s.profile.onboarded },
-        state: { waterByDate: s.waterByDate, weights: s.weights, challenge: s.challenge, doneWorkouts: s.doneWorkouts, favorites: s.favorites, sessions: s.sessions, waterGoal: s.waterGoal },
+        state: { waterByDate: s.waterByDate, weights: s.weights, challenge: s.challenge, doneWorkouts: s.doneWorkouts, favorites: s.favorites, sessions: s.sessions, waterGoal: s.waterGoal, xp: s.xp, streakDays: s.streakDays, lastDoneDate: s.lastDoneDate, totalMinutes: s.totalMinutes },
       },
     }).catch(() => {});
   };
@@ -70,6 +70,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           favorites: st.favorites || undefined,
           sessions: st.sessions || undefined,
           waterGoal: st.waterGoal || undefined,
+          xp: typeof st.xp === 'number' ? st.xp : undefined,
+          streakDays: typeof st.streakDays === 'number' ? st.streakDays : undefined,
+          lastDoneDate: typeof st.lastDoneDate === 'string' ? st.lastDoneDate : undefined,
+          totalMinutes: typeof st.totalMinutes === 'number' ? st.totalMinutes : undefined,
         });
       }
     } catch { /* keep local state */ }
@@ -97,9 +101,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const wrap = async (fn: () => Promise<any>) => {
-    if (!backendLive) return 'Backend abhi connect nahi hua — deployment ke baad login chalega.';
+    if (!backendLive) return 'The backend is not connected yet — login will work once it is deployed.';
     try { await fn(); return null; }
-    catch (e: any) { return String(e.message || 'Kuch ghalat ho gaya'); }
+    catch (e: any) { return String(e.message || 'Something went wrong'); }
   };
 
   const ctx: AuthCtx = {

@@ -11,9 +11,9 @@ import { useFit } from '../store';
 const W = Dimensions.get('window').width;
 
 const SLIDES: { icon: IconName; tint: string; title: string; sub: string }[] = [
-  { icon: 'flame', tint: '#FF7A45', title: 'Ghar baithe\nasli fitness', sub: 'Bina gym, bina equipment — guided workouts jo waqai kaam karte hain, har level ke liye.' },
-  { icon: 'chart', tint: '#4CC3FF', title: 'Progress jo\nnazar aaye', sub: 'Wazan, paani, streak aur 30-day challenge — tumhari har jeet track hoti hai.' },
-  { icon: 'trophy', tint: '#FFB020', title: 'Roz ka saathi,\nroz ki jeet', sub: 'Chhote chhote roz ke goals, badges aur reminders — adat banti hai, natija milta hai.' },
+  { icon: 'flame', tint: '#FF7A45', title: 'Real fitness,\nright at home', sub: 'No gym, no equipment — guided workouts that actually work, for every level.' },
+  { icon: 'chart', tint: '#4CC3FF', title: 'Progress you\ncan see', sub: 'Weight, water, streaks and a 30-day challenge — every win gets tracked.' },
+  { icon: 'trophy', tint: '#FFB020', title: 'Show up daily,\nwin daily', sub: 'Small daily goals, XP, levels and badges — build the habit, get the results.' },
 ];
 
 export default function Onboarding() {
@@ -65,7 +65,7 @@ export default function Onboarding() {
                 <View key={i} style={{ width: i === page ? 26 : 8, height: 8, borderRadius: 4, backgroundColor: i === page ? C.lime : C.border }} />
               ))}
             </View>
-            <PrimaryButton label={page === SLIDES.length - 1 ? 'Shuru karein' : 'Aage'} icon="right"
+            <PrimaryButton label={page === SLIDES.length - 1 ? 'Get started' : 'Next'} icon="right"
               onPress={() => setPage(page + 1)} />
             <Pressable onPress={() => setPage(SLIDES.length)} style={{ alignItems: 'center', marginTop: 16 }}>
               <Tx dim size={14} w="semi">Skip</Tx>
@@ -74,28 +74,28 @@ export default function Onboarding() {
         </View>
       ) : (
         <ScrollView contentContainerStyle={{ padding: 24, paddingTop: 30 }}>
-          <Tx size={28} w="xbold">Tumhara plan banayein</Tx>
-          <Tx dim size={15} style={{ marginTop: 8, lineHeight: 22 }}>Ye details tumhare calories aur goals ko personal banayengi.</Tx>
+          <Tx size={28} w="xbold">Let's build your plan</Tx>
+          <Tx dim size={15} style={{ marginTop: 8, lineHeight: 22 }}>These details personalize your calorie targets and goals.</Tx>
 
-          <Tx size={13} w="semi" dim style={{ marginTop: 26, marginBottom: 8 }}>Tumhara naam</Tx>
+          <Tx size={13} w="semi" dim style={{ marginTop: 26, marginBottom: 8 }}>Gender</Tx>
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <Chip label="Male" selected={gender === 'male'} onPress={() => setGender('male')} />
             <Chip label="Female" selected={gender === 'female'} onPress={() => setGender('female')} />
           </View>
           <View style={{ height: 14 }} />
-          <Tx size={12} w="semi" dim style={{ marginBottom: 6 }}>Naam (optional)</Tx>
-          <Field icon="user" placeholder="Maslan: Ali Khan" value={name} onChangeText={setName} autoCap="words" />
+          <Tx size={12} w="semi" dim style={{ marginBottom: 6 }}>Name (optional)</Tx>
+          <Field icon="user" placeholder="e.g. Ali Khan" value={name} onChangeText={setName} autoCap="words" />
           <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
-            <NumField label="Umar" value={age} onChange={setAge} unit="saal" />
-            <NumField label="Qad" value={height} onChange={setHeight} unit="cm" />
-            <NumField label="Wazan" value={weight} onChange={setWeight} unit="kg" />
+            <NumField label="Age" value={age} onChange={setAge} unit="yrs" />
+            <NumField label="Height" value={height} onChange={setHeight} unit="cm" />
+            <NumField label="Weight" value={weight} onChange={setWeight} unit="kg" />
           </View>
 
-          <Tx size={13} w="semi" dim style={{ marginTop: 24, marginBottom: 10 }}>Tumhara goal</Tx>
+          <Tx size={13} w="semi" dim style={{ marginTop: 24, marginBottom: 10 }}>Your goal</Tx>
           {([
-            ['lose_weight', 'target', 'Wazan kam karna'],
-            ['build_muscle', 'muscle', 'Muscle banana'],
-            ['stay_fit', 'heart', 'Bas fit rehna'],
+            ['lose_weight', 'target', 'Lose weight'],
+            ['build_muscle', 'muscle', 'Build muscle'],
+            ['stay_fit', 'heart', 'Just stay fit'],
           ] as const).map(([g, ic, label]) => (
             <Pressable key={g} onPress={() => setGoal(g)} style={{
               flexDirection: 'row', alignItems: 'center', gap: 12, padding: 15, marginBottom: 10,
@@ -109,11 +109,11 @@ export default function Onboarding() {
           ))}
 
           <View style={{ height: 12 }} />
-          <PrimaryButton label="Account bana kar save karo" icon="user" onPress={() => finish(true)} />
+          <PrimaryButton label="Create account & save" icon="user" onPress={() => finish(true)} />
           <View style={{ height: 12 }} />
-          <GhostButton label="Guest ke tor par continue" onPress={() => finish(false)} />
+          <GhostButton label="Continue as guest" onPress={() => finish(false)} />
           <Tx dim size={12} style={{ textAlign: 'center', marginTop: 14, lineHeight: 17 }}>
-            Account se tumhara data Neon cloud mein mehfooz rehta hai aur kisi bhi phone par wapas mil jata hai.
+            With an account, your data is safely backed up to the cloud and restored on any phone.
           </Tx>
         </ScrollView>
       )}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import { Image, Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -8,14 +8,16 @@ import { Tx, Card, Ring, WorkoutCard, SectionHead } from '../../ui';
 import { Icon } from '../../icons';
 import { useFit } from '../../store';
 import { ACHIEVEMENTS, WEEK_PLAN, todayWorkout, workoutById } from '../../data';
+import { levelFromXp, achievementValue, isAchievementUnlocked, type GameStats } from '../../game';
+import { workoutImage } from '../../workoutImages';
 import { AdBanner } from '../../ads';
 
 function greeting() {
   const h = new Date().getHours();
-  if (h < 12) return 'Subah bakhair';
-  if (h < 17) return 'Assalam-o-Alaikum';
-  if (h < 21) return 'Shaam bakhair';
-  return 'Shab bakhair';
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  if (h < 21) return 'Good evening';
+  return 'Good night';
 }
 
 export default function Home() {
@@ -24,7 +26,12 @@ export default function Home() {
   const today = todayWorkout();
   const name = fit.profile.name?.split(' ')[0] || 'Champion';
   const pct = Math.min(1, fit.waterToday / fit.waterGoal);
-  const nextBadge = ACHIEVEMENTS.find(a => fit.doneWorkouts < a.need);
+  const lvl = levelFromXp(fit.xp);
+  const stats: GameStats = {
+    doneWorkouts: fit.doneWorkouts, streakDays: fit.streakDays, xp: fit.xp,
+    weightsCount: fit.weights.length, challengeDays: fit.challenge.length,
+  };
+  const nextBadge = ACHIEVEMENTS.find(a => !isAchievementUnlocked(a, stats));
   const weekIdx = (new Date().getDay() + 6) % 7;
 
   return (
@@ -41,15 +48,38 @@ export default function Home() {
           </View>
         </View>
 
+        <Pressable onPress={() => router.push('/(tabs)/progress')}>
+          <LinearGradient colors={['#232E12', '#151B0A']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            style={{ borderRadius: R.lg, padding: 14, marginTop: 16, borderWidth: 1, borderColor: C.lime + '33', flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: C.lime, alignItems: 'center', justifyContent: 'center' }}>
+              <Tx size={15} w="xbold" color={C.ink}>{lvl.level}</Tx>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Tx size={13.5} w="bold">Level {lvl.level} · {lvl.title} <Tx dim size={12} w="semi">— {fit.xp} XP</Tx></Tx>
+              <View style={{ height: 6, borderRadius: 3, backgroundColor: '#00000066', marginTop: 7, overflow: 'hidden' }}>
+                <View style={{ width: `${lvl.progress * 100}%`, height: 6, backgroundColor: C.lime, borderRadius: 3 }} />
+              </View>
+              <Tx dim size={11} style={{ marginTop: 5 }}>{lvl.needed - lvl.into} XP to Level {lvl.level + 1}</Tx>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#2A1E05', borderWidth: 1, borderColor: '#4A3608', paddingHorizontal: 10, paddingVertical: 6, borderRadius: R.pill }}>
+              <Icon name="flame" size={15} color={C.amber} />
+              <Tx size={12.5} w="bold" color={C.amber}>{fit.streakDays}</Tx>
+            </View>
+          </LinearGradient>
+        </Pressable>
+
         <Pressable onPress={() => router.push(`/workout/${today.id}`)}>
           <LinearGradient colors={[today.tint, today.tint + 'B3']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-            style={{ borderRadius: R.xl, padding: 20, marginTop: 20 }}>
+            style={{ borderRadius: R.xl, padding: 20, marginTop: 14 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Tx size={12} w="xbold" color="#00000099">AAJ KA WORKOUT</Tx>
+              <Tx size={12} w="xbold" color="#00000099">TODAY'S WORKOUT</Tx>
               <View style={{ backgroundColor: '#00000030', borderRadius: R.pill, paddingHorizontal: 10, paddingVertical: 4 }}>
                 <Tx size={11.5} w="bold" color="#FFF">{today.level}</Tx>
               </View>
             </View>
+            {workoutImage(today.id) ? (
+              <Image source={workoutImage(today.id)} style={{ width: '100%', height: 140, borderRadius: R.lg, marginTop: 14 }} resizeMode="cover" />
+            ) : null}
             <Tx size={26} w="xbold" color="#FFF" style={{ marginTop: 12 }}>{today.title}</Tx>
             <Tx size={13.5} w="semi" color="#FFFFFFD9" style={{ marginTop: 5 }}>{today.focus} · {today.exercises.length} exercises</Tx>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 16 }}>
@@ -72,7 +102,7 @@ export default function Home() {
               <Tx size={19} w="xbold">{fit.waterToday}<Tx size={12} dim>/{fit.waterGoal}</Tx></Tx>
               <Tx dim size={10.5} w="semi">glasses</Tx>
             </Ring>
-            <Tx size={13} w="bold" style={{ marginTop: 10 }}>Paani ka goal</Tx>
+            <Tx size={13} w="bold" style={{ marginTop: 10 }}>Water goal</Tx>
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
               <Pressable onPress={() => fit.setWaterToday(fit.waterToday - 1)} style={stepBtn}><Icon name="minus" size={16} color={C.text} /></Pressable>
               <Pressable onPress={() => fit.setWaterToday(fit.waterToday + 1)} style={[stepBtn, { backgroundColor: C.lime }]}><Icon name="plus" size={16} color={C.ink} /></Pressable>
@@ -82,11 +112,11 @@ export default function Home() {
             <Card style={{ flex: 1, justifyContent: 'center' }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <Icon name="weight" size={19} color={C.blue} />
-                <Tx dim size={12} w="semi">AAJ KA WAZAN</Tx>
+                <Tx dim size={12} w="semi">TODAY'S WEIGHT</Tx>
               </View>
               <Tx size={23} w="xbold" style={{ marginTop: 6 }}>{fit.weights[fit.weights.length - 1]} kg</Tx>
               <Tx size={12} w="semi" color={fit.weights.length > 1 && fit.weights[fit.weights.length - 1] <= fit.weights[0] ? C.lime : C.muted}>
-                shuru se {fit.weights.length > 1 ? (fit.weights[fit.weights.length - 1] - fit.weights[0]).toFixed(1) : '0.0'} kg
+                {fit.weights.length > 1 ? (fit.weights[fit.weights.length - 1] - fit.weights[0]).toFixed(1) : '0.0'} kg since start
               </Tx>
             </Card>
             <Card style={{ flex: 1, justifyContent: 'center' }}>
@@ -94,7 +124,7 @@ export default function Home() {
                 <Icon name="target" size={19} color={C.violet} />
                 <Tx dim size={12} w="semi">30-DAY CHALLENGE</Tx>
               </View>
-              <Tx size={23} w="xbold" style={{ marginTop: 6 }}>{fit.challenge.length}/30 din</Tx>
+              <Tx size={23} w="xbold" style={{ marginTop: 6 }}>{fit.challenge.length}/30 days</Tx>
               <View style={{ height: 7, borderRadius: 4, backgroundColor: C.ringTrack, marginTop: 8, overflow: 'hidden' }}>
                 <View style={{ width: `${(fit.challenge.length / 30) * 100}%`, height: 7, backgroundColor: C.violet, borderRadius: 4 }} />
               </View>
@@ -108,13 +138,17 @@ export default function Home() {
               <Icon name={nextBadge.icon} size={25} color={C.amber} />
             </LinearGradient>
             <View style={{ flex: 1 }}>
-              <Tx size={14.5} w="bold">Agla badge: {nextBadge.title}</Tx>
-              <Tx dim size={12.5} style={{ marginTop: 2 }}>Sirf {nextBadge.need - fit.doneWorkouts} workout aur — {nextBadge.desc.toLowerCase()}</Tx>
+              <Tx size={14.5} w="bold">Next badge: {nextBadge.title}</Tx>
+              <Tx dim size={12.5} style={{ marginTop: 2 }}>
+                {nextBadge.kind === 'workouts'
+                  ? `Only ${nextBadge.need - achievementValue(nextBadge, stats)} more workout${nextBadge.need - achievementValue(nextBadge, stats) === 1 ? '' : 's'} to go`
+                  : nextBadge.desc}
+              </Tx>
             </View>
           </Card>
         ) : null}
 
-        <SectionHead title="Is haftay ka plan" />
+        <SectionHead title="This week's plan" />
         <View style={{ flexDirection: 'row', gap: 8 }}>
           {WEEK_PLAN.map((d, i) => {
             const w = workoutById(d.workoutId);
@@ -131,7 +165,7 @@ export default function Home() {
           })}
         </View>
 
-        <SectionHead title="Popular workouts" action="Sab dekho" onAction={() => router.push('/(tabs)/workouts')} />
+        <SectionHead title="Popular workouts" action="See all" onAction={() => router.push('/(tabs)/workouts')} />
         {['hiit', 'chest', 'yoga'].map(id => {
           const w = workoutById(id);
           return <WorkoutCard key={id} w={w} onPress={() => router.push(`/workout/${w.id}`)}

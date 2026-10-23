@@ -1,5 +1,5 @@
 import React from 'react';
-import { FlatList, Pressable, View } from 'react-native';
+import { FlatList, Image, Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -7,6 +7,7 @@ import { C, R } from '../../theme';
 import { Tx, PrimaryButton } from '../../ui';
 import { Icon } from '../../icons';
 import { workoutById } from '../../data';
+import { workoutImage } from '../../workoutImages';
 import { useFit } from '../../store';
 
 export default function WorkoutDetail() {
@@ -32,9 +33,13 @@ export default function WorkoutDetail() {
                   <Icon name="fav" size={20} color={fav ? '#FF2E63' : '#FFF'} />
                 </Pressable>
               </View>
-              <View style={{ alignItems: 'center', marginTop: 10 }}>
-                <Icon name={w.icon} size={64} color="#FFF" strokeWidth={1.3} />
-              </View>
+              {workoutImage(w.id) ? (
+                <Image source={workoutImage(w.id)} style={{ width: '100%', height: 185, borderRadius: R.lg, marginTop: 12 }} resizeMode="cover" />
+              ) : (
+                <View style={{ alignItems: 'center', marginTop: 10 }}>
+                  <Icon name={w.icon} size={64} color="#FFF" strokeWidth={1.3} />
+                </View>
+              )}
               <Tx size={27} w="xbold" color="#FFF" style={{ textAlign: 'center', marginTop: 12 }}>{w.title}</Tx>
               <Tx size={13.5} w="semi" color="#FFFFFFD9" style={{ textAlign: 'center', marginTop: 6, lineHeight: 19, paddingHorizontal: 12 }}>{w.desc}</Tx>
               <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 10, marginTop: 16 }}>
@@ -68,7 +73,7 @@ export default function WorkoutDetail() {
         )}
       />
       <View style={{ position: 'absolute', left: 20, right: 20, bottom: 22 }}>
-        <PrimaryButton label="Workout shuru karo" icon="play" onPress={() => router.push(`/player/${w.id}`)} />
+        <PrimaryButton label="Start workout" icon="play" onPress={() => router.push(`/player/${w.id}`)} />
       </View>
     </SafeAreaView>
   );

@@ -9,10 +9,10 @@ import { useFit } from '../../store';
 import { AdBanner } from '../../ads';
 
 const ACTIVITY = [
-  { k: 'sedentary', label: 'Halki activity', mult: 1.2 },
-  { k: 'light', label: 'Halki exercise (1-3 din)', mult: 1.375 },
-  { k: 'moderate', label: 'Moderate (3-5 din)', mult: 1.55 },
-  { k: 'active', label: 'Heavy (6-7 din)', mult: 1.725 },
+  { k: 'sedentary', label: 'Sedentary (little or none)', mult: 1.2 },
+  { k: 'light', label: 'Light exercise (1-3 days)', mult: 1.375 },
+  { k: 'moderate', label: 'Moderate (3-5 days)', mult: 1.55 },
+  { k: 'active', label: 'Heavy (6-7 days)', mult: 1.725 },
 ] as const;
 
 export default function Tools() {
@@ -40,13 +40,23 @@ export default function Tools() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={['top']}>
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
-        <Tx size={27} w="xbold">Tools</Tx>
-        <Tx dim size={14} style={{ marginTop: 5 }}>BMI, calories aur roz ki zarooratein — science ke saath</Tx>
+        <LinearGradient colors={['#14324A', '#0D1B28']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          style={{ borderRadius: R.xl, padding: 18, borderWidth: 1, borderColor: C.blue + '30' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 13 }}>
+            <View style={{ width: 48, height: 48, borderRadius: 14, backgroundColor: C.blue + '24', alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="calc" size={25} color={C.blue} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Tx size={25} w="xbold">Tools</Tx>
+              <Tx dim size={13} style={{ marginTop: 2 }}>BMI, calories and daily needs — backed by science</Tx>
+            </View>
+          </View>
+        </LinearGradient>
 
         <View style={{ flexDirection: 'row', gap: 12, marginTop: 18 }}>
-          <NumField label="Wazan" value={weight} onChange={setWeight} unit="kg" />
-          <NumField label="Qad" value={height} onChange={setHeight} unit="cm" />
-          <NumField label="Umar" value={age} onChange={setAge} unit="yr" />
+          <NumField label="Weight" value={weight} onChange={setWeight} unit="kg" />
+          <NumField label="Height" value={height} onChange={setHeight} unit="cm" />
+          <NumField label="Age" value={age} onChange={setAge} unit="yr" />
         </View>
         <View style={{ flexDirection: 'row', marginTop: 14 }}>
           <Chip label="Male" selected={male} onPress={() => setMale(true)} />
@@ -55,7 +65,7 @@ export default function Tools() {
 
         <Card style={{ marginTop: 18 }}>
           <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' }}>
-            <Tx dim size={12.5} w="semi">TUMHARA BMI</Tx>
+            <Tx dim size={12.5} w="semi">YOUR BMI</Tx>
             <Tx size={13} w="bold" color={catColor}>{cat}</Tx>
           </View>
           <Tx size={44} w="xbold" style={{ marginTop: 6 }}>{bmi ? bmi.toFixed(1) : '—'}</Tx>
@@ -70,17 +80,17 @@ export default function Tools() {
           </View>
         </Card>
 
-        <SectionHead title="Roz ki calories" />
+        <SectionHead title="Daily calories" />
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <Card style={{ flex: 1 }}>
             <Icon name="fire" size={20} color={C.amber} />
             <Tx size={24} w="xbold" style={{ marginTop: 8 }}>{bmr}</Tx>
-            <Tx dim size={12} w="semi">BMR — aaram par burn</Tx>
+            <Tx dim size={12} w="semi">BMR — burn at rest</Tx>
           </Card>
           <Card style={{ flex: 1 }}>
             <Icon name="zap" size={20} color={C.lime} />
             <Tx size={24} w="xbold" style={{ marginTop: 8 }}>{tdee}</Tx>
-            <Tx dim size={12} w="semi">TDEE — roz ka kul burn</Tx>
+            <Tx dim size={12} w="semi">TDEE — total daily burn</Tx>
           </Card>
         </View>
         <Tx size={13} w="semi" dim style={{ marginTop: 16, marginBottom: 8 }}>Activity level</Tx>
@@ -88,18 +98,18 @@ export default function Tools() {
           {ACTIVITY.map(x => <Chip key={x.k} label={x.label} selected={act.k === x.k} onPress={() => setAct(x)} />)}
         </View>
         <Card style={{ marginTop: 16 }}>
-          <Tx size={14.5} w="bold">Goal ke hisaab se</Tx>
+          <Tx size={14.5} w="bold">Based on your goal</Tx>
           <View style={{ marginTop: 10, gap: 8 }}>
-            <Row label="Wazan kam karna" value={`${Math.max(0, tdee - 500)} kcal`} color={C.blue} />
-            <Row label="Wazan barqarar" value={`${tdee} kcal`} color={C.lime} />
-            <Row label="Muscle banana" value={`${tdee + 300} kcal`} color={C.violet} />
+            <Row label="Lose weight" value={`${Math.max(0, tdee - 500)} kcal`} color={C.blue} />
+            <Row label="Maintain weight" value={`${tdee} kcal`} color={C.lime} />
+            <Row label="Build muscle" value={`${tdee + 300} kcal`} color={C.violet} />
           </View>
-          <Tx dim size={12} style={{ marginTop: 12, lineHeight: 17 }}>Protein hadaf: roz ~{Math.round(w * 1.8)} g (muscle goal ke liye 1.6–2.2 g/kg).</Tx>
+          <Tx dim size={12} style={{ marginTop: 12, lineHeight: 17 }}>Protein target: about {Math.round(w * 1.8)} g per day (1.6–2.2 g/kg for muscle goals).</Tx>
         </Card>
 
-        <SectionHead title="Paani ka hadaf" />
+        <SectionHead title="Water target" />
         <Card>
-          <Tx dim size={13.5} style={{ lineHeight: 19 }}>Tumhare wazan ke hisaab se roz ka paani: <Tx size={13.5} w="bold" color={C.text}>{(w * 0.033).toFixed(1)} litre</Tx> (~{Math.round(w * 0.033 / 0.25)} glasses). Abhi tumhara goal {fit.waterGoal} glasses hai.</Tx>
+          <Tx dim size={13.5} style={{ lineHeight: 19 }}>Based on your weight, your daily water target is <Tx size={13.5} w="bold" color={C.text}>{(w * 0.033).toFixed(1)} litres</Tx> (~{Math.round(w * 0.033 / 0.25)} glasses). Your current goal is {fit.waterGoal} glasses.</Tx>
           <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
             {[6, 8, 10, 12].map(n => <Chip key={n} label={`${n} glasses`} selected={fit.waterGoal === n} onPress={() => fit.setWaterGoal(n)} />)}
           </View>

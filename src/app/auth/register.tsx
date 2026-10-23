@@ -30,19 +30,19 @@ export default function Register() {
         <Pressable onPress={() => router.replace('/(tabs)')} hitSlop={10} style={{ marginBottom: 20 }}>
           <Icon name="left" size={24} color={C.text} />
         </Pressable>
-        <Tx size={30} w="xbold">Account banayein</Tx>
-        <Tx dim size={15} style={{ marginTop: 8 }}>Data cloud mein save hoga — phone badlo, progress wahi milega.</Tx>
+        <Tx size={30} w="xbold">Create account</Tx>
+        <Tx dim size={15} style={{ marginTop: 8 }}>Your data is saved to the cloud — switch phones and keep your progress.</Tx>
 
         <View style={{ gap: 12, marginTop: 28 }}>
-          <Field icon="user" placeholder="Poora naam" value={name} onChangeText={setName} autoCap="words" />
+          <Field icon="user" placeholder="Full name" value={name} onChangeText={setName} autoCap="words" />
           <Field icon="mail" placeholder="Email address" value={email} onChangeText={setEmail} keyboard="email-address" />
-          <Field icon="lock" placeholder="Password (kam az kam 6 characters)" value={password} onChangeText={setPassword} secure />
+          <Field icon="lock" placeholder="Password (at least 6 characters)" value={password} onChangeText={setPassword} secure />
         </View>
         {err ? <Tx size={13} w="semi" color={C.red} style={{ marginTop: 14 }}>{err}</Tx> : null}
         <View style={{ height: 20 }} />
-        <PrimaryButton label={busy ? 'Ban raha hai…' : 'Account banayein'} onPress={submit} disabled={busy} />
+        <PrimaryButton label={busy ? 'Creating…' : 'Create account'} onPress={submit} disabled={busy} />
         <Pressable onPress={() => router.replace('/auth/login')} style={{ alignItems: 'center', marginTop: 20 }}>
-          <Tx dim size={14}>Pehle se account hai? <Tx size={14} w="bold" color={C.lime}>Login karo</Tx></Tx>
+          <Tx dim size={14}>Already have an account? <Tx size={14} w="bold" color={C.lime}>Log in</Tx></Tx>
         </Pressable>
       </ScrollView>
     </SafeAreaView>
