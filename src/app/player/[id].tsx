@@ -12,6 +12,7 @@ import { useFit, type CompletionResult } from '../../store';
 import { useAuth } from '../../auth';
 import { API_URL } from '../../config';
 import { showWorkoutInterstitial } from '../../ads';
+import { sounds } from '../../sound';
 
 const REST_SECONDS = 10;
 
@@ -71,6 +72,37 @@ export default function Player() {
       Animated.spring(levelUpAnim, { toValue: 1, friction: 5, tension: 60, useNativeDriver: true }).start();
     }
   }, [done, reward, levelUpAnim]);
+
+  // --- Sound feedback (watches state only — never touches the timer) ---
+  // Workout start: the first WORK phase begins on mount.
+  useEffect(() => { sounds.go(); }, []);
+
+  const prevPhase = useRef({ resting, left });
+  useEffect(() => {
+    const prev = prevPhase.current;
+    if (!done) {
+      if (!prev.resting && resting) {
+        sounds.rest(); // WORK -> REST
+      } else if (prev.resting && !resting) {
+        sounds.go(); // REST -> WORK (next exercise)
+      } else if (!resting && prev.left !== left && (left === 3 || left === 2 || left === 1)) {
+        sounds.tick(); // last-seconds countdown during WORK
+      }
+    }
+    prevPhase.current = { resting, left };
+  }, [left, resting, done]);
+
+  const finishPlayed = useRef(false);
+  useEffect(() => {
+    if (done && reward && !finishPlayed.current) {
+      finishPlayed.current = true;
+      sounds.finish();
+      if (reward.leveledUp) {
+        const t = setTimeout(() => sounds.success(), 500);
+        return () => clearTimeout(t);
+      }
+    }
+  }, [done, reward]);
 
   useEffect(() => {
     if (left > 0 || done) return;
@@ -220,11 +252,11 @@ export default function Player() {
 
           <View style={{ flexDirection: 'row', gap: 26, alignItems: 'flex-start', justifyContent: 'center' }}>
             <View style={{ alignItems: 'center', gap: 7, marginTop: 10 }}>
-              <GlassCircleBtn icon="right" size={56} iconSize={24} onPress={() => setLeft(0)} />
+              <GlassCircleBtn icon="right" size={56} iconSize={24} onPress={() => { sounds.tap(); setLeft(0); }} />
               <Tx dim size={11} w="semi">{resting ? 'Skip rest' : 'Skip'}</Tx>
             </View>
             <View style={{ alignItems: 'center', gap: 7 }}>
-              <Pressable onPress={() => setRunning(!running)} style={{
+              <Pressable onPress={() => { sounds.tap(); setRunning(!running); }} style={{
                 width: 76, height: 76, borderRadius: 38, backgroundColor: C.lime,
                 alignItems: 'center', justifyContent: 'center',
                 shadowColor: C.lime, shadowOpacity: 0.45, shadowRadius: 18, shadowOffset: { width: 0, height: 6 }, elevation: 8,
@@ -234,7 +266,7 @@ export default function Player() {
               <Tx dim size={11} w="semi">{running ? 'Pause' : 'Resume'}</Tx>
             </View>
             <View style={{ alignItems: 'center', gap: 7, marginTop: 10 }}>
-              <GlassCircleBtn icon="check" size={56} iconSize={24} onPress={() => router.back()} />
+              <GlassCircleBtn icon="check" size={56} iconSize={24} onPress={() => { sounds.tap(); router.back(); }} />
               <Tx dim size={11} w="semi">End</Tx>
             </View>
           </View>

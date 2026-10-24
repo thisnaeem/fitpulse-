@@ -12,6 +12,7 @@ import { levelFromXp, achievementValue, isAchievementUnlocked, type GameStats } 
 import { workoutImage } from '../../workoutImages';
 import { PROMO } from '../../promoImages';
 import { AdBanner } from '../../ads';
+import { sounds } from '../../sound';
 
 function greeting() {
   const h = new Date().getHours();
@@ -155,8 +156,8 @@ export default function Home() {
             <Tx size={30} w="xbold" style={{ marginTop: 4 }}>{fit.waterToday} <Tx size={14} dim>glasses</Tx></Tx>
           </View>
           <View style={{ gap: 10 }}>
-            <Pressable onPress={() => fit.setWaterToday(fit.waterToday - 1)} style={stepBtn}><Icon name="minus" size={16} color={C.text} /></Pressable>
-            <Pressable onPress={() => fit.setWaterToday(fit.waterToday + 1)} style={[stepBtn, { backgroundColor: C.lime, borderColor: C.lime }]}><Icon name="plus" size={16} color={C.ink} /></Pressable>
+            <Pressable onPress={() => { sounds.tap(); fit.setWaterToday(fit.waterToday - 1); }} style={stepBtn}><Icon name="minus" size={16} color={C.text} /></Pressable>
+            <Pressable onPress={() => { sounds.tap(); fit.setWaterToday(fit.waterToday + 1); }} style={[stepBtn, { backgroundColor: C.lime, borderColor: C.lime }]}><Icon name="plus" size={16} color={C.ink} /></Pressable>
           </View>
         </View>
 

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { levelFromXp, xpForWorkout } from './game';
+import { setSoundEnabled } from './sound';
 
 /** FitPulse store — offline-first on-device state. When the user signs in,
  *  this state is synced to the Neon backend via src/auth.tsx (push/pull). */
@@ -43,6 +44,7 @@ export interface FitStore {
   streakDays: number;
   lastDoneDate: string | null;
   totalMinutes: number;
+  soundOn: boolean;
   setProfile: (p: Partial<Profile>) => void;
   setWaterToday: (n: number) => void;
   waterToday: number;
@@ -51,6 +53,7 @@ export interface FitStore {
   addDoneWorkout: (s: Session) => CompletionResult;
   toggleFavorite: (id: string) => void;
   setWaterGoal: (n: number) => void;
+  setSoundOn: (v: boolean) => void;
   hydrate: (snap: Partial<Snapshot>) => void;
   snapshot: () => Snapshot;
 }
@@ -60,6 +63,7 @@ export interface Snapshot {
   challenge: number[]; doneWorkouts: number; favorites: string[];
   sessions: Session[]; waterGoal: number;
   xp: number; streakDays: number; lastDoneDate: string | null; totalMinutes: number;
+  soundOn: boolean;
 }
 
 const DEFAULT_PROFILE: Profile = { name: '', goal: 'stay_fit', gender: 'male', age: 25, heightCm: 170, onboarded: false };
@@ -89,11 +93,12 @@ export function FitStoreProvider({ children }: { children: React.ReactNode }) {
   const [streakDays, setStreakDays] = useState(0);
   const [lastDoneDate, setLastDoneDate] = useState<string | null>(null);
   const [totalMinutes, setTotalMinutes] = useState(0);
+  const [soundOn, setSoundOnState] = useState(true);
   const stateRef = useRef<Snapshot | null>(null);
 
   const snapshot = (): Snapshot => ({
     profile, waterByDate, weights, challenge, doneWorkouts, favorites, sessions, waterGoal,
-    xp, streakDays, lastDoneDate, totalMinutes,
+    xp, streakDays, lastDoneDate, totalMinutes, soundOn,
   });
   stateRef.current = snapshot();
 
@@ -106,8 +111,12 @@ export function FitStoreProvider({ children }: { children: React.ReactNode }) {
     setSessions(next.sessions); setWaterGoalState(next.waterGoal);
     setXp(next.xp ?? 0); setStreakDays(next.streakDays ?? 0);
     setLastDoneDate(next.lastDoneDate ?? null); setTotalMinutes(next.totalMinutes ?? 0);
+    setSoundOnState(next.soundOn ?? true);
     persist(next);
   };
+
+  // Keep the sound module's enabled flag in sync with the setting.
+  useEffect(() => { setSoundEnabled(soundOn); }, [soundOn]);
 
   useEffect(() => {
     (async () => {
@@ -124,6 +133,7 @@ export function FitStoreProvider({ children }: { children: React.ReactNode }) {
             streakDays: typeof s.streakDays === 'number' ? s.streakDays : prev.streakDays,
             lastDoneDate: typeof s.lastDoneDate === 'string' ? s.lastDoneDate : prev.lastDoneDate,
             totalMinutes: typeof s.totalMinutes === 'number' ? s.totalMinutes : prev.totalMinutes,
+            soundOn: typeof s.soundOn === 'boolean' ? s.soundOn : prev.soundOn,
           }));
         } else {
           // migrate v1 keys if present
@@ -148,7 +158,7 @@ export function FitStoreProvider({ children }: { children: React.ReactNode }) {
 
   const store: FitStore = {
     loaded, profile, waterByDate, weights, challenge, doneWorkouts, favorites, sessions, waterGoal,
-    xp, streakDays, lastDoneDate, totalMinutes,
+    xp, streakDays, lastDoneDate, totalMinutes, soundOn,
     waterToday: waterByDate[todayKey()] || 0,
     setProfile: p => update(s => ({ ...s, profile: { ...s.profile, ...p } })),
     setWaterToday: n => update(s => ({ ...s, waterByDate: { ...s.waterByDate, [todayKey()]: Math.max(0, Math.min(30, n)) } })),
@@ -191,6 +201,7 @@ export function FitStoreProvider({ children }: { children: React.ReactNode }) {
       ...s, favorites: s.favorites.includes(id) ? s.favorites.filter(x => x !== id) : [...s.favorites, id],
     })),
     setWaterGoal: n => update(s => ({ ...s, waterGoal: Math.max(4, Math.min(20, n)) })),
+    setSoundOn: v => update(s => ({ ...s, soundOn: v })),
     hydrate: snap => update(s => ({
       ...s, ...snap,
       profile: { ...s.profile, ...(snap.profile || {}) },
@@ -198,6 +209,7 @@ export function FitStoreProvider({ children }: { children: React.ReactNode }) {
       streakDays: typeof snap.streakDays === 'number' ? snap.streakDays : s.streakDays,
       lastDoneDate: typeof snap.lastDoneDate === 'string' ? snap.lastDoneDate : s.lastDoneDate,
       totalMinutes: typeof snap.totalMinutes === 'number' ? snap.totalMinutes : s.totalMinutes,
+      soundOn: typeof snap.soundOn === 'boolean' ? snap.soundOn : s.soundOn,
     })),
     snapshot,
   };

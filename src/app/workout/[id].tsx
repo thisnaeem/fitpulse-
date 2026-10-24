@@ -9,6 +9,7 @@ import { Icon, type IconName } from '../../icons';
 import { workoutById } from '../../data';
 import { workoutImage } from '../../workoutImages';
 import { useFit } from '../../store';
+import { sounds } from '../../sound';
 
 export default function WorkoutDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -98,7 +99,7 @@ export default function WorkoutDetail() {
       </ScrollView>
 
       <View style={{ position: 'absolute', left: 20, right: 20, bottom: Math.max(22, insets.bottom + 12) }}>
-        <Pressable onPress={() => router.push(`/player/${w.id}`)}>
+        <Pressable onPress={() => { sounds.tap(); router.push(`/player/${w.id}`); }}>
           <LinearGradient colors={[C.lime2, C.lime]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
             style={{ height: 58, borderRadius: R.pill, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
             <Icon name="play" size={20} color={C.ink} strokeWidth={2.2} />

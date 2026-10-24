@@ -95,6 +95,7 @@ export default function Profile() {
         )}
 
         <SectionHead title="Settings" />
+        <SoundRow />
         <Row icon="water" label="Daily water goal" sub={`${fit.waterGoal} glasses`} />
         <Row icon="bell" label="Workout reminder" sub="Coming soon" />
         <Row icon="settings" label="Redo setup" sub="Run onboarding again" onPress={() => fit.setProfile({ onboarded: false })} />
@@ -104,6 +105,30 @@ export default function Profile() {
         <AdBanner style={{ marginTop: 18 }} />
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function SoundRow() {
+  const fit = useFit();
+  const on = fit.soundOn;
+  return (
+    <Pressable onPress={() => fit.setSoundOn(!on)}>
+      <Card style={{ marginBottom: 10, flexDirection: 'row', alignItems: 'center', gap: 13, padding: 15 }}>
+        <View style={{ width: 40, height: 40, borderRadius: 13, backgroundColor: C.glass, borderWidth: 1, borderColor: C.glassBorder, alignItems: 'center', justifyContent: 'center' }}>
+          <Icon name="volume" size={19} color={on ? C.lime : C.muted} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Tx size={14.5} w="semi">Sound effects</Tx>
+          <Tx dim size={12} style={{ marginTop: 1 }}>{on ? 'On — timer cues, taps and fanfares' : 'Off — the app stays silent'}</Tx>
+        </View>
+        <View style={{
+          width: 48, height: 28, borderRadius: 14, justifyContent: 'center', paddingHorizontal: 3,
+          backgroundColor: on ? C.lime : C.glass, borderWidth: 1, borderColor: on ? C.lime : C.glassBorder,
+        }}>
+          <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: on ? C.ink : C.muted, alignSelf: on ? 'flex-end' : 'flex-start' }} />
+        </View>
+      </Card>
+    </Pressable>
   );
 }
 

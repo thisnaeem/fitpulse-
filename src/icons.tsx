@@ -44,6 +44,7 @@ import WorkoutRunIcon from '@hugeicons/core-free-icons/WorkoutRunIcon';
 import Notification01Icon from '@hugeicons/core-free-icons/Notification01Icon';
 import Share01Icon from '@hugeicons/core-free-icons/Share01Icon';
 import StarIcon from '@hugeicons/core-free-icons/StarIcon';
+import VolumeHighIcon from '@hugeicons/core-free-icons/VolumeHighIcon';
 
 const MAP = {
   home: Home01Icon, fire: FireIcon, drop: DropletIcon, calc: CalculatorIcon,
@@ -59,6 +60,7 @@ const MAP = {
   eye: EyeIcon, eyeOff: ViewOffIcon, chevron: ChevronRightIcon,
   muscle: BodyPartMuscleIcon, yoga: Yoga01Icon, run: WorkoutRunIcon,
   bell: Notification01Icon, share: Share01Icon, star: StarIcon,
+  volume: VolumeHighIcon,
 } as const;
 
 export type IconName = keyof typeof MAP;
