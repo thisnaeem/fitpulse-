@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Polyline, Polygon, Circle as SvgCircle } from 'react-native-svg';
 import { useRouter } from 'expo-router';
 import { C, R } from '../../theme';
-import { Tx, Card, NumField, PrimaryButton, SectionHead } from '../../ui';
+import { Tx, Card, NumField, PrimaryButton, Ring, SectionHead } from '../../ui';
 import { Icon } from '../../icons';
 import { useFit, localDateKey, type Session } from '../../store';
 import { ACHIEVEMENTS } from '../../data';
@@ -58,73 +58,73 @@ export default function Progress() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={['top']}>
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
-        <Tx size={27} w="xbold">Progress</Tx>
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 112 }} showsVerticalScrollIndicator={false}>
+        <Tx size={29} w="xbold">Progress</Tx>
         <Tx dim size={14} style={{ marginTop: 5 }}>Your hard work, in real numbers</Tx>
 
-        {/* Level card */}
-        <LinearGradient colors={['#2C3A12', '#171D0B']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-          style={{ borderRadius: R.xl, padding: 18, marginTop: 18, borderWidth: 1, borderColor: C.lime + '3D' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-            <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: C.lime, alignItems: 'center', justifyContent: 'center' }}>
-              <Tx size={19} w="xbold" color={C.ink}>{lvl.level}</Tx>
+        {/* Level card — big ring + oversized XP */}
+        <View style={{
+          marginTop: 18, padding: 20, borderRadius: R.xl, flexDirection: 'row', alignItems: 'center', gap: 18,
+          backgroundColor: C.glass, borderWidth: 1, borderColor: C.glassBorder,
+        }}>
+          <Ring size={112} stroke={11} progress={lvl.progress} glow>
+            <Tx size={34} w="xbold">{lvl.level}</Tx>
+            <Tx dim size={10} w="semi">LEVEL</Tx>
+          </Ring>
+          <View style={{ flex: 1 }}>
+            <Tx size={12} w="xbold" color={C.lime}>{lvl.title.toUpperCase()}</Tx>
+            <Tx size={38} w="xbold" style={{ marginTop: 2 }}>{fit.xp}<Tx size={16} dim> XP</Tx></Tx>
+            <View style={{ height: 8, borderRadius: 4, backgroundColor: C.ringTrack, marginTop: 10, overflow: 'hidden' }}>
+              <LinearGradient colors={[C.lime2, C.lime]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                style={{ width: `${lvl.progress * 100}%`, height: 8, borderRadius: 4 }} />
             </View>
-            <View style={{ flex: 1 }}>
-              <Tx size={12} w="xbold" color={C.lime}>LEVEL {lvl.level}</Tx>
-              <Tx size={21} w="xbold" style={{ marginTop: 1 }}>{lvl.title}</Tx>
-            </View>
-            <View style={{ alignItems: 'flex-end' }}>
-              <Tx size={20} w="xbold">{fit.xp}</Tx>
-              <Tx dim size={11} w="semi">TOTAL XP</Tx>
-            </View>
+            <Tx dim size={12} style={{ marginTop: 7 }}>{lvl.into} / {lvl.needed} XP — {lvl.needed - lvl.into} to Level {lvl.level + 1}</Tx>
           </View>
-          <View style={{ height: 10, borderRadius: 5, backgroundColor: '#00000055', marginTop: 16, overflow: 'hidden' }}>
-            <LinearGradient colors={[C.lime2, C.lime]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-              style={{ width: `${lvl.progress * 100}%`, height: 10, borderRadius: 5 }} />
-          </View>
-          <Tx dim size={12} style={{ marginTop: 8 }}>{lvl.into} / {lvl.needed} XP — {lvl.needed - lvl.into} XP to Level {lvl.level + 1}</Tx>
-        </LinearGradient>
+        </View>
 
-        {/* Streak + totals */}
-        <View style={{ flexDirection: 'row', gap: 12, marginTop: 14 }}>
-          <LinearGradient colors={['#3A2408', '#1D1406']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-            style={{ flex: 1.15, borderRadius: R.lg, padding: 16, borderWidth: 1, borderColor: C.amber + '40' }}>
+        {/* Streak + badges */}
+        <View style={{ flexDirection: 'row', gap: 12, marginTop: 12 }}>
+          <View style={{
+            flex: 1.15, padding: 16, borderRadius: R.lg,
+            backgroundColor: C.glass, borderWidth: 1, borderColor: C.glassBorder,
+          }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
               <Icon name="flame" size={19} color={C.amber} />
               <Tx size={12} w="xbold" color={C.amber}>STREAK</Tx>
             </View>
-            <Tx size={30} w="xbold" style={{ marginTop: 8 }}>{fit.streakDays} <Tx size={15} dim>day{fit.streakDays === 1 ? '' : 's'}</Tx></Tx>
+            <Tx size={38} w="xbold" style={{ marginTop: 6 }}>{fit.streakDays} <Tx size={15} dim>day{fit.streakDays === 1 ? '' : 's'}</Tx></Tx>
             <Tx dim size={12} style={{ marginTop: 3 }}>{fit.streakDays > 0 ? 'Keep the fire alive — train today!' : 'Finish a workout to start your streak.'}</Tx>
-          </LinearGradient>
+          </View>
           <Card style={{ flex: 1, justifyContent: 'center' }}>
-            <Tx size={24} w="xbold">{unlockedCount}<Tx size={14} dim>/{ACHIEVEMENTS.length}</Tx></Tx>
+            <Tx size={32} w="xbold">{unlockedCount}<Tx size={15} dim>/{ACHIEVEMENTS.length}</Tx></Tx>
             <Tx dim size={11.5} w="semi" style={{ marginTop: 2 }}>BADGES UNLOCKED</Tx>
           </Card>
         </View>
 
         <View style={{ flexDirection: 'row', gap: 12, marginTop: 12 }}>
-          <Card style={{ flex: 1, alignItems: 'center', paddingVertical: 14 }}>
-            <Tx size={24} w="xbold">{fit.doneWorkouts}</Tx><Tx dim size={11.5} w="semi" style={{ marginTop: 2 }}>WORKOUTS</Tx>
+          <Card style={{ flex: 1, alignItems: 'center', paddingVertical: 16 }}>
+            <Tx size={32} w="xbold">{fit.doneWorkouts}</Tx><Tx dim size={11.5} w="semi" style={{ marginTop: 3 }}>WORKOUTS</Tx>
           </Card>
-          <Card style={{ flex: 1, alignItems: 'center', paddingVertical: 14 }}>
-            <Tx size={24} w="xbold">{fit.totalMinutes}</Tx><Tx dim size={11.5} w="semi" style={{ marginTop: 2 }}>MINUTES</Tx>
+          <Card style={{ flex: 1, alignItems: 'center', paddingVertical: 16 }}>
+            <Tx size={32} w="xbold">{fit.totalMinutes}</Tx><Tx dim size={11.5} w="semi" style={{ marginTop: 3 }}>MINUTES</Tx>
           </Card>
-          <Card style={{ flex: 1, alignItems: 'center', paddingVertical: 14 }}>
-            <Tx size={24} w="xbold">{estKcal}</Tx><Tx dim size={11.5} w="semi" style={{ marginTop: 2 }}>EST. KCAL</Tx>
+          <Card style={{ flex: 1, alignItems: 'center', paddingVertical: 16 }}>
+            <Tx size={32} w="xbold">{estKcal}</Tx><Tx dim size={11.5} w="semi" style={{ marginTop: 3 }}>EST. KCAL</Tx>
           </Card>
         </View>
 
         {/* Last 7 days */}
         <SectionHead title="Last 7 days" />
         <Card>
-          <View style={{ flexDirection: 'row', alignItems: 'flex-end', height: 108 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-end', height: 142 }}>
             {week.map(d => (
               <View key={d.key} style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-end', height: '100%' }}>
-                <Tx size={11} w="bold" color={d.isToday ? C.lime : C.muted}>{d.minutes > 0 ? d.minutes : ''}</Tx>
+                <Tx size={11.5} w="bold" color={d.isToday ? C.lime : C.muted}>{d.minutes > 0 ? d.minutes : ''}</Tx>
                 <View style={{
-                  width: 24, marginTop: 5, borderRadius: 7,
-                  height: Math.max(4, (d.minutes / weekMax) * 66),
-                  backgroundColor: d.minutes === 0 ? C.ringTrack : d.isToday ? C.lime : C.lime + '59',
+                  width: 26, marginTop: 5,
+                  borderTopLeftRadius: 9, borderTopRightRadius: 9, borderBottomLeftRadius: 4, borderBottomRightRadius: 4,
+                  height: Math.max(5, (d.minutes / weekMax) * 92),
+                  backgroundColor: d.minutes === 0 ? C.ringTrack : d.isToday ? C.lime : C.lime + '66',
                 }} />
                 <Tx size={11} w={d.isToday ? 'bold' : 'semi'} color={d.isToday ? C.lime : C.faint} style={{ marginTop: 7 }}>{d.label}</Tx>
               </View>
@@ -173,8 +173,8 @@ export default function Progress() {
             return (
               <View key={a.id} style={{
                 width: '48.5%', padding: 14, borderRadius: R.lg,
-                backgroundColor: got ? '#FFB02014' : C.card, borderWidth: 1, borderColor: got ? '#FFB02055' : C.border,
-                opacity: got ? 1 : 0.75,
+                backgroundColor: got ? '#FFB02014' : C.glass, borderWidth: 1, borderColor: got ? '#FFB02055' : C.glassBorder,
+                opacity: got ? 1 : 0.85,
               }}>
                 <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                   <Icon name={a.icon} size={28} color={got ? C.amber : C.faint} />
@@ -186,7 +186,7 @@ export default function Progress() {
                 <Tx dim size={11.5} style={{ marginTop: 3, lineHeight: 16 }}>{a.desc}</Tx>
                 {!got ? (
                   <View style={{ height: 5, borderRadius: 3, backgroundColor: C.ringTrack, marginTop: 10, overflow: 'hidden' }}>
-                    <View style={{ width: `${Math.min(100, (value / a.need) * 100)}%`, height: 5, backgroundColor: C.amber, borderRadius: 3 }} />
+                    <View style={{ width: `${Math.min(100, (value / a.need) * 100)}%`, height: 5, backgroundColor: C.lime, borderRadius: 3 }} />
                   </View>
                 ) : null}
               </View>
@@ -203,7 +203,7 @@ export default function Progress() {
               return (
                 <Pressable key={d} onPress={() => fit.toggleChallengeDay(d)} style={{
                   width: '15.5%', aspectRatio: 1, borderRadius: R.sm, alignItems: 'center', justifyContent: 'center',
-                  backgroundColor: on ? C.lime : C.card2, borderWidth: 1, borderColor: on ? C.lime : C.border,
+                  backgroundColor: on ? C.lime : C.glass, borderWidth: 1, borderColor: on ? C.lime : C.glassBorder,
                 }}>
                   {on ? <Icon name="check" size={17} color={C.ink} strokeWidth={2.6} />
                       : <Tx size={13} w="bold" dim>{d}</Tx>}

@@ -1,24 +1,28 @@
-import React, { useState } from 'react';
-import { Dimensions, Pressable, ScrollView, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useRef, useState, type ComponentRef } from 'react';
+import { Dimensions, Image, Pressable, ScrollView, View, type ImageSourcePropType } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { C, R } from '../theme';
-import { Tx, PrimaryButton, GhostButton, Chip, NumField, Field } from '../ui';
-import { Icon, type IconName } from '../icons';
+import { Tx, PrimaryButton, WhiteButton, GhostButton, Chip, NumField, Field } from '../ui';
+import { Icon } from '../icons';
 import { useFit } from '../store';
+import { PROMO } from '../promoImages';
+import { workoutImage } from '../workoutImages';
 
 const W = Dimensions.get('window').width;
 
-const SLIDES: { icon: IconName; tint: string; title: string; sub: string }[] = [
-  { icon: 'flame', tint: '#FF7A45', title: 'Real fitness,\nright at home', sub: 'No gym, no equipment — guided workouts that actually work, for every level.' },
-  { icon: 'chart', tint: '#4CC3FF', title: 'Progress you\ncan see', sub: 'Weight, water, streaks and a 30-day challenge — every win gets tracked.' },
-  { icon: 'trophy', tint: '#FFB020', title: 'Show up daily,\nwin daily', sub: 'Small daily goals, XP, levels and badges — build the habit, get the results.' },
+const SLIDES: { image?: ImageSourcePropType; top: string; accent: string; sub: string }[] = [
+  { image: PROMO.onboard1, top: 'Real fitness,', accent: 'right at home', sub: 'No gym, no equipment — guided workouts that actually work, for every level.' },
+  { image: PROMO.onboard2, top: 'Progress you', accent: 'can actually see', sub: 'Weight, water, streaks and a 30-day challenge — every win gets tracked.' },
+  { image: workoutImage('cardio'), top: 'Show up daily,', accent: 'win daily', sub: 'Small daily goals, XP, levels and badges — build the habit, get the results.' },
 ];
 
 export default function Onboarding() {
   const router = useRouter();
   const fit = useFit();
+  const insets = useSafeAreaInsets();
+  const pagerRef = useRef<ComponentRef<typeof ScrollView>>(null);
   const [page, setPage] = useState(0);
   const [name, setName] = useState('');
   const [goal, setGoal] = useState<'lose_weight' | 'build_muscle' | 'stay_fit'>('stay_fit');
@@ -28,6 +32,13 @@ export default function Onboarding() {
   const [weight, setWeight] = useState('72');
 
   const setupPage = page >= SLIDES.length;
+
+  const next = () => {
+    if (page >= SLIDES.length - 1) { setPage(SLIDES.length); return; }
+    const target = page + 1;
+    pagerRef.current?.scrollTo({ x: target * W, animated: true });
+    setPage(target);
+  };
 
   const finish = (withAccount: boolean) => {
     fit.setProfile({
@@ -40,41 +51,11 @@ export default function Onboarding() {
     else router.replace('/(tabs)');
   };
 
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
-      {!setupPage ? (
-        <View style={{ flex: 1 }}>
-          <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false}
-            onMomentumScrollEnd={e => setPage(Math.round(e.nativeEvent.contentOffset.x / W))}>
-            {SLIDES.map((s, i) => (
-              <View key={i} style={{ width: W, flex: 1, paddingHorizontal: 28, paddingTop: 46 }}>
-                <LinearGradient colors={[s.tint + '40', s.tint + '0A']} style={{
-                  width: 190, height: 190, borderRadius: 60, alignSelf: 'center',
-                  alignItems: 'center', justifyContent: 'center', marginBottom: 44,
-                }}>
-                  <Icon name={s.icon} size={92} color={s.tint} strokeWidth={1.4} />
-                </LinearGradient>
-                <Tx size={34} w="xbold" style={{ lineHeight: 42 }}>{s.title}</Tx>
-                <Tx dim size={16} style={{ marginTop: 14, lineHeight: 24 }}>{s.sub}</Tx>
-              </View>
-            ))}
-          </ScrollView>
-          <View style={{ paddingHorizontal: 28, paddingBottom: 18 }}>
-            <View style={{ flexDirection: 'row', gap: 7, marginBottom: 24, justifyContent: 'center' }}>
-              {SLIDES.map((_, i) => (
-                <View key={i} style={{ width: i === page ? 26 : 8, height: 8, borderRadius: 4, backgroundColor: i === page ? C.lime : C.border }} />
-              ))}
-            </View>
-            <PrimaryButton label={page === SLIDES.length - 1 ? 'Get started' : 'Next'} icon="right"
-              onPress={() => setPage(page + 1)} />
-            <Pressable onPress={() => setPage(SLIDES.length)} style={{ alignItems: 'center', marginTop: 16 }}>
-              <Tx dim size={14} w="semi">Skip</Tx>
-            </Pressable>
-          </View>
-        </View>
-      ) : (
+  if (setupPage) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
         <ScrollView contentContainerStyle={{ padding: 24, paddingTop: 30 }}>
-          <Tx size={28} w="xbold">Let's build your plan</Tx>
+          <Tx size={29} w="xbold">Let's build your plan</Tx>
           <Tx dim size={15} style={{ marginTop: 8, lineHeight: 22 }}>These details personalize your calorie targets and goals.</Tx>
 
           <Tx size={13} w="semi" dim style={{ marginTop: 26, marginBottom: 8 }}>Gender</Tx>
@@ -99,8 +80,8 @@ export default function Onboarding() {
           ] as const).map(([g, ic, label]) => (
             <Pressable key={g} onPress={() => setGoal(g)} style={{
               flexDirection: 'row', alignItems: 'center', gap: 12, padding: 15, marginBottom: 10,
-              borderRadius: R.md, borderWidth: 1.5,
-              borderColor: goal === g ? C.lime : C.border, backgroundColor: goal === g ? C.lime + '14' : C.card,
+              borderRadius: R.lg, borderWidth: 1.5,
+              borderColor: goal === g ? C.lime : C.glassBorder, backgroundColor: goal === g ? C.lime + '14' : C.glass,
             }}>
               <Icon name={ic} size={22} color={goal === g ? C.lime : C.muted} />
               <Tx size={15} w="semi" style={{ flex: 1 }}>{label}</Tx>
@@ -116,7 +97,41 @@ export default function Onboarding() {
             With an account, your data is safely backed up to the cloud and restored on any phone.
           </Tx>
         </ScrollView>
-      )}
-    </SafeAreaView>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <ScrollView ref={pagerRef} horizontal pagingEnabled showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={e => setPage(Math.round(e.nativeEvent.contentOffset.x / W))}>
+        {SLIDES.map((s, i) => (
+          <View key={i} style={{ width: W }}>
+            {s.image ? (
+              <Image source={s.image} style={{ position: 'absolute', width: '100%', height: '100%' }} resizeMode="cover" />
+            ) : null}
+            <LinearGradient colors={['rgba(7,9,11,0.25)', 'rgba(7,9,11,0.05)', 'rgba(7,9,11,0.94)']}
+              locations={[0, 0.4, 0.85]} style={{ position: 'absolute', width: '100%', height: '100%' }} />
+            <View style={{ position: 'absolute', left: 26, right: 26, bottom: 208 }}>
+              <Tx size={37} w="xbold" color="#FFF" style={{ lineHeight: 44 }}>{s.top}</Tx>
+              <Tx size={37} w="xbold" color={C.lime2} style={{ lineHeight: 44 }}>{s.accent}</Tx>
+              <Tx size={15.5} color="#FFFFFFD9" style={{ marginTop: 12, lineHeight: 23 }}>{s.sub}</Tx>
+            </View>
+          </View>
+        ))}
+      </ScrollView>
+
+      {/* Controls overlaid on the photo (ref-c) */}
+      <View style={{ position: 'absolute', left: 24, right: 24, bottom: insets.bottom + 20 }}>
+        <View style={{ flexDirection: 'row', gap: 7, marginBottom: 22 }}>
+          {SLIDES.map((_, i) => (
+            <View key={i} style={{ width: i === page ? 26 : 8, height: 8, borderRadius: 4, backgroundColor: i === page ? C.lime : 'rgba(255,255,255,0.35)' }} />
+          ))}
+        </View>
+        <PrimaryButton label={page === SLIDES.length - 1 ? 'Get started' : 'Next'} icon="right" onPress={next} />
+        <View style={{ height: 12 }} />
+        <WhiteButton label="Skip" onPress={() => setPage(SLIDES.length)} />
+      </View>
+    </View>
   );
 }

@@ -39,19 +39,21 @@ export default function Tools() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={['top']}>
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
-        <LinearGradient colors={['#14324A', '#0D1B28']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-          style={{ borderRadius: R.xl, padding: 18, borderWidth: 1, borderColor: C.blue + '30' }}>
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 112 }} showsVerticalScrollIndicator={false}>
+        <View style={{
+          borderRadius: R.xl, padding: 18,
+          backgroundColor: C.glass, borderWidth: 1, borderColor: C.glassBorder,
+        }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 13 }}>
-            <View style={{ width: 48, height: 48, borderRadius: 14, backgroundColor: C.blue + '24', alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ width: 48, height: 48, borderRadius: 15, backgroundColor: C.blue + '24', alignItems: 'center', justifyContent: 'center' }}>
               <Icon name="calc" size={25} color={C.blue} />
             </View>
             <View style={{ flex: 1 }}>
-              <Tx size={25} w="xbold">Tools</Tx>
+              <Tx size={27} w="xbold">Tools</Tx>
               <Tx dim size={13} style={{ marginTop: 2 }}>BMI, calories and daily needs — backed by science</Tx>
             </View>
           </View>
-        </LinearGradient>
+        </View>
 
         <View style={{ flexDirection: 'row', gap: 12, marginTop: 18 }}>
           <NumField label="Weight" value={weight} onChange={setWeight} unit="kg" />
@@ -68,7 +70,7 @@ export default function Tools() {
             <Tx dim size={12.5} w="semi">YOUR BMI</Tx>
             <Tx size={13} w="bold" color={catColor}>{cat}</Tx>
           </View>
-          <Tx size={44} w="xbold" style={{ marginTop: 6 }}>{bmi ? bmi.toFixed(1) : '—'}</Tx>
+          <Tx size={48} w="xbold" style={{ marginTop: 6 }}>{bmi ? bmi.toFixed(1) : '—'}</Tx>
           <View style={{ height: 10, borderRadius: 5, marginTop: 12, flexDirection: 'row', overflow: 'hidden' }}>
             <LinearGradient colors={['#4CC3FF', '#A3E635', '#FFB020', '#FF6B5E']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ flex: 1 }} />
           </View>
@@ -84,12 +86,12 @@ export default function Tools() {
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <Card style={{ flex: 1 }}>
             <Icon name="fire" size={20} color={C.amber} />
-            <Tx size={24} w="xbold" style={{ marginTop: 8 }}>{bmr}</Tx>
+            <Tx size={30} w="xbold" style={{ marginTop: 8 }}>{bmr}</Tx>
             <Tx dim size={12} w="semi">BMR — burn at rest</Tx>
           </Card>
           <Card style={{ flex: 1 }}>
             <Icon name="zap" size={20} color={C.lime} />
-            <Tx size={24} w="xbold" style={{ marginTop: 8 }}>{tdee}</Tx>
+            <Tx size={30} w="xbold" style={{ marginTop: 8 }}>{tdee}</Tx>
             <Tx dim size={12} w="semi">TDEE — total daily burn</Tx>
           </Card>
         </View>

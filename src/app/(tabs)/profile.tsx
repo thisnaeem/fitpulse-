@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { C, R } from '../../theme';
-import { Tx, Card, SectionHead } from '../../ui';
+import { Tx, Card, Ring, SectionHead } from '../../ui';
 import { Icon, type IconName } from '../../icons';
 import { useFit } from '../../store';
 import { useAuth } from '../../auth';
@@ -25,40 +25,35 @@ export default function Profile() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={['top']}>
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
-        <LinearGradient colors={['#2E2450', '#171231']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-          style={{ borderRadius: R.xl, padding: 18, borderWidth: 1, borderColor: C.violet + '30' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 13 }}>
-            <View style={{ width: 48, height: 48, borderRadius: 14, backgroundColor: C.violet + '24', alignItems: 'center', justifyContent: 'center' }}>
-              <Icon name="user" size={25} color={C.violet} />
-            </View>
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 112 }} showsVerticalScrollIndicator={false}>
+        {/* Lime-tinted glass banner — avatar, identity, mini level ring */}
+        <View style={{
+          borderRadius: R.xl, padding: 18,
+          backgroundColor: C.lime + '12', borderWidth: 1, borderColor: C.lime + '2E',
+        }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+            <LinearGradient colors={[C.lime2, C.lime]} style={{ width: 60, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center' }}>
+              <Tx size={26} w="xbold" color={C.ink}>{initials}</Tx>
+            </LinearGradient>
             <View style={{ flex: 1 }}>
-              <Tx size={25} w="xbold">Profile</Tx>
-              <Tx dim size={13} style={{ marginTop: 2 }}>Your account, level and settings</Tx>
+              <Tx size={20} w="xbold">{auth.user?.name || p.name || 'Guest User'}</Tx>
+              <Tx dim size={12.5} style={{ marginTop: 2 }}>{auth.user ? auth.user.email : 'Local mode — data stays on this phone'}</Tx>
+              <View style={{ alignSelf: 'flex-start', marginTop: 7, backgroundColor: C.lime + '1F', borderRadius: R.pill, paddingHorizontal: 10, paddingVertical: 3 }}>
+                <Tx size={11.5} w="bold" color={C.lime}>Goal: {GOAL_LABEL[p.goal]}</Tx>
+              </View>
             </View>
+            <Ring size={58} stroke={5} progress={lvl.progress}>
+              <Tx size={16} w="xbold">{lvl.level}</Tx>
+            </Ring>
           </View>
-        </LinearGradient>
-
-        <Card style={{ marginTop: 14, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-          <LinearGradient colors={[C.lime2, C.lime]} style={{ width: 60, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center' }}>
-            <Tx size={26} w="xbold" color={C.ink}>{initials}</Tx>
-          </LinearGradient>
-          <View style={{ flex: 1 }}>
-            <Tx size={18} w="xbold">{auth.user?.name || p.name || 'Guest User'}</Tx>
-            <Tx dim size={13} style={{ marginTop: 2 }}>{auth.user ? auth.user.email : 'Local mode — data stays on this phone'}</Tx>
-            <View style={{ alignSelf: 'flex-start', marginTop: 7, backgroundColor: C.lime + '1F', borderRadius: R.pill, paddingHorizontal: 10, paddingVertical: 3 }}>
-              <Tx size={11.5} w="bold" color={C.lime}>Goal: {GOAL_LABEL[p.goal]}</Tx>
-            </View>
-          </View>
-        </Card>
+        </View>
 
         <Pressable onPress={() => router.push('/(tabs)/progress')}>
-          <LinearGradient colors={['#2C3A12', '#171D0B']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-            style={{ borderRadius: R.lg, padding: 16, marginTop: 14, borderWidth: 1, borderColor: C.lime + '3D' }}>
+          <View style={{
+            borderRadius: R.lg, padding: 16, marginTop: 12,
+            backgroundColor: C.glass, borderWidth: 1, borderColor: C.glassBorder,
+          }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <View style={{ width: 46, height: 46, borderRadius: 23, backgroundColor: C.lime, alignItems: 'center', justifyContent: 'center' }}>
-                <Tx size={16} w="xbold" color={C.ink}>{lvl.level}</Tx>
-              </View>
               <View style={{ flex: 1 }}>
                 <Tx size={15} w="xbold">Level {lvl.level} · {lvl.title}</Tx>
                 <Tx dim size={12} style={{ marginTop: 2 }}>{fit.xp} XP total · {lvl.needed - lvl.into} XP to Level {lvl.level + 1}</Tx>
@@ -68,20 +63,20 @@ export default function Profile() {
                 <Tx size={13.5} w="bold" color={C.amber}>{fit.streakDays} day streak</Tx>
               </View>
             </View>
-            <View style={{ height: 7, borderRadius: 4, backgroundColor: '#00000055', marginTop: 12, overflow: 'hidden' }}>
+            <View style={{ height: 7, borderRadius: 4, backgroundColor: C.ringTrack, marginTop: 12, overflow: 'hidden' }}>
               <View style={{ width: `${lvl.progress * 100}%`, height: 7, backgroundColor: C.lime, borderRadius: 4 }} />
             </View>
-          </LinearGradient>
+          </View>
         </Pressable>
 
         <View style={{ flexDirection: 'row', gap: 12, marginTop: 14 }}>
           <Card style={{ flex: 1 }}>
             <Tx dim size={11.5} w="semi">HEIGHT / WEIGHT</Tx>
-            <Tx size={16.5} w="bold" style={{ marginTop: 5 }}>{p.heightCm} cm · {fit.weights[fit.weights.length - 1]} kg</Tx>
+            <Tx size={19} w="xbold" style={{ marginTop: 5 }}>{p.heightCm} cm · {fit.weights[fit.weights.length - 1]} kg</Tx>
           </Card>
           <Card style={{ flex: 1 }}>
             <Tx dim size={11.5} w="semi">FAVORITES</Tx>
-            <Tx size={16.5} w="bold" style={{ marginTop: 5 }}>{fit.favorites.length} workouts</Tx>
+            <Tx size={19} w="xbold" style={{ marginTop: 5 }}>{fit.favorites.length} workouts</Tx>
           </Card>
         </View>
 
@@ -105,7 +100,7 @@ export default function Profile() {
         <Row icon="settings" label="Redo setup" sub="Run onboarding again" onPress={() => fit.setProfile({ onboarded: false })} />
 
         <SectionHead title="About" />
-        <Row icon="heart" label="FitPulse v1.1" sub="Real fitness at home — no gym needed" />
+        <Row icon="heart" label="FitPulse" sub="Real fitness at home — no gym needed" />
         <AdBanner style={{ marginTop: 18 }} />
       </ScrollView>
     </SafeAreaView>
@@ -118,7 +113,7 @@ function Row({ icon, label, sub, onPress, danger }: {
   return (
     <Pressable onPress={onPress}>
       <Card style={{ marginBottom: 10, flexDirection: 'row', alignItems: 'center', gap: 13, padding: 15 }}>
-        <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: C.card2, alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ width: 40, height: 40, borderRadius: 13, backgroundColor: C.glass, borderWidth: 1, borderColor: C.glassBorder, alignItems: 'center', justifyContent: 'center' }}>
           <Icon name={icon} size={19} color={danger ? C.red : C.muted} />
         </View>
         <View style={{ flex: 1 }}>

@@ -1,11 +1,11 @@
 import React from 'react';
-import { FlatList, Image, Pressable, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Image, Pressable, ScrollView, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { C, R } from '../../theme';
-import { Tx, PrimaryButton } from '../../ui';
-import { Icon } from '../../icons';
+import { Tx, GlassCircleBtn } from '../../ui';
+import { Icon, type IconName } from '../../icons';
 import { workoutById } from '../../data';
 import { workoutImage } from '../../workoutImages';
 import { useFit } from '../../store';
@@ -14,69 +14,98 @@ export default function WorkoutDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const fit = useFit();
+  const insets = useSafeAreaInsets();
   const w = workoutById(id || '');
   const fav = fit.favorites.includes(w.id);
+  const img = workoutImage(w.id);
+
+  const stats: { icon: IconName; value: string; label: string }[] = [
+    { icon: 'clock', value: String(w.minutes), label: 'MINUTES' },
+    { icon: 'fire', value: String(w.kcal), label: 'KCAL' },
+    { icon: 'dumbbell', value: String(w.exercises.length), label: 'EXERCISES' },
+  ];
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={['top']}>
-      <FlatList
-        data={w.exercises}
-        keyExtractor={(e, i) => e.name + i}
-        contentContainerStyle={{ paddingBottom: 110 }}
-        showsVerticalScrollIndicator={false}
-        ListHeaderComponent={
-          <View>
-            <LinearGradient colors={[w.tint, w.tint + 'A6']} style={{ padding: 20, paddingTop: 14, borderBottomLeftRadius: R.xl, borderBottomRightRadius: R.xl }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Pressable onPress={() => router.back()} hitSlop={10} style={hdrBtn}><Icon name="left" size={21} color="#FFF" /></Pressable>
-                <Pressable onPress={() => fit.toggleFavorite(w.id)} hitSlop={10} style={hdrBtn}>
-                  <Icon name="fav" size={20} color={fav ? '#FF2E63' : '#FFF'} />
-                </Pressable>
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 118 }} showsVerticalScrollIndicator={false}>
+        {/* Full-bleed photo hero */}
+        <View style={{ height: 320, backgroundColor: C.card }}>
+          {img ? <Image source={img} style={{ position: 'absolute', width: '100%', height: '100%' }} resizeMode="cover" /> : null}
+          <LinearGradient colors={['rgba(7,9,11,0.35)', 'rgba(7,9,11,0)', 'rgba(7,9,11,0.55)']}
+            locations={[0, 0.35, 1]} style={{ position: 'absolute', width: '100%', height: '100%' }} />
+          {!img ? (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name={w.icon} size={84} color="#FFF" strokeWidth={1.2} />
+            </View>
+          ) : null}
+          <View style={{
+            position: 'absolute', left: 20, right: 20, top: insets.top + 10,
+            flexDirection: 'row', justifyContent: 'space-between',
+          }}>
+            <GlassCircleBtn icon="left" onPress={() => router.back()} />
+            <GlassCircleBtn icon="fav" iconColor={fav ? '#FF5E8A' : '#FFF'} onPress={() => fit.toggleFavorite(w.id)} />
+          </View>
+          <View style={{ position: 'absolute', left: 20, bottom: 44 }}>
+            <View style={{
+              alignSelf: 'flex-start', backgroundColor: C.glassDark, borderWidth: 1, borderColor: 'rgba(255,255,255,0.22)',
+              borderRadius: R.pill, paddingHorizontal: 11, paddingVertical: 5,
+            }}>
+              <Tx size={11.5} w="bold" color="#FFF">{w.level.toUpperCase()} · {w.focus.toUpperCase()}</Tx>
+            </View>
+          </View>
+        </View>
+
+        {/* Sheet overlapping the hero */}
+        <View style={{
+          marginTop: -28, backgroundColor: C.sheet, borderTopLeftRadius: R.xl, borderTopRightRadius: R.xl,
+          paddingHorizontal: 20, paddingTop: 22,
+        }}>
+          <Tx size={29} w="xbold" style={{ lineHeight: 34 }}>{w.title}</Tx>
+          <Tx dim size={14} style={{ marginTop: 8, lineHeight: 21 }}>{w.desc}</Tx>
+
+          <View style={{ flexDirection: 'row', gap: 10, marginTop: 18 }}>
+            {stats.map(s => (
+              <View key={s.label} style={{
+                flex: 1, alignItems: 'center', paddingVertical: 14,
+                backgroundColor: C.glass, borderWidth: 1, borderColor: C.glassBorder, borderRadius: R.lg,
+              }}>
+                <Icon name={s.icon} size={19} color={C.lime} />
+                <Tx size={24} w="xbold" style={{ marginTop: 6 }}>{s.value}</Tx>
+                <Tx dim size={10.5} w="semi" style={{ marginTop: 1 }}>{s.label}</Tx>
               </View>
-              {workoutImage(w.id) ? (
-                <Image source={workoutImage(w.id)} style={{ width: '100%', height: 185, borderRadius: R.lg, marginTop: 12 }} resizeMode="cover" />
-              ) : (
-                <View style={{ alignItems: 'center', marginTop: 10 }}>
-                  <Icon name={w.icon} size={64} color="#FFF" strokeWidth={1.3} />
+            ))}
+          </View>
+
+          <Tx size={18} w="xbold" style={{ marginTop: 26, marginBottom: 6 }}>Exercises ({w.exercises.length})</Tx>
+          {w.exercises.map((item, index) => (
+            <View key={item.name + index} style={{ flexDirection: 'row', gap: 13, paddingVertical: 11, alignItems: 'flex-start' }}>
+              <View style={{
+                width: 36, height: 36, borderRadius: 12, marginTop: 1, alignItems: 'center', justifyContent: 'center',
+                backgroundColor: C.glass, borderWidth: 1, borderColor: C.glassBorder,
+              }}>
+                <Tx size={13.5} w="xbold" color={C.lime}>{index + 1}</Tx>
+              </View>
+              <View style={{ flex: 1 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Tx size={15.5} w="bold">{item.name}</Tx>
+                  <Tx size={13} w="bold" color={C.lime}>{item.detail}</Tx>
                 </View>
-              )}
-              <Tx size={27} w="xbold" color="#FFF" style={{ textAlign: 'center', marginTop: 12 }}>{w.title}</Tx>
-              <Tx size={13.5} w="semi" color="#FFFFFFD9" style={{ textAlign: 'center', marginTop: 6, lineHeight: 19, paddingHorizontal: 12 }}>{w.desc}</Tx>
-              <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 10, marginTop: 16 }}>
-                {[
-                  { ic: 'clock' as const, t: `${w.minutes} min` },
-                  { ic: 'fire' as const, t: `${w.kcal} kcal` },
-                  { ic: 'chart' as const, t: w.level },
-                ].map((m, i) => (
-                  <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#0000002E', borderRadius: R.pill, paddingHorizontal: 12, paddingVertical: 6 }}>
-                    <Icon name={m.ic} size={14} color="#FFF" /><Tx size={12.5} w="bold" color="#FFF">{m.t}</Tx>
-                  </View>
-                ))}
+                <Tx dim size={12.5} style={{ marginTop: 2, lineHeight: 17 }}>{item.muscle} · {item.tip}</Tx>
               </View>
-            </LinearGradient>
-            <Tx size={17} w="xbold" style={{ paddingHorizontal: 20, marginTop: 22, marginBottom: 6 }}>Exercises ({w.exercises.length})</Tx>
-          </View>
-        }
-        renderItem={({ item, index }) => (
-          <View style={{ flexDirection: 'row', gap: 13, paddingHorizontal: 20, paddingVertical: 11, alignItems: 'flex-start' }}>
-            <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: C.card, borderWidth: 1, borderColor: C.border, alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>
-              <Tx size={13} w="xbold" color={w.tint}>{index + 1}</Tx>
             </View>
-            <View style={{ flex: 1 }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Tx size={15.5} w="bold">{item.name}</Tx>
-                <Tx size={13} w="bold" color={w.tint}>{item.detail}</Tx>
-              </View>
-              <Tx dim size={12.5} style={{ marginTop: 2 }}>{item.muscle} · {item.tip}</Tx>
-            </View>
-          </View>
-        )}
-      />
-      <View style={{ position: 'absolute', left: 20, right: 20, bottom: 22 }}>
-        <PrimaryButton label="Start workout" icon="play" onPress={() => router.push(`/player/${w.id}`)} />
+          ))}
+        </View>
+      </ScrollView>
+
+      <View style={{ position: 'absolute', left: 20, right: 20, bottom: Math.max(22, insets.bottom + 12) }}>
+        <Pressable onPress={() => router.push(`/player/${w.id}`)}>
+          <LinearGradient colors={[C.lime2, C.lime]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+            style={{ height: 58, borderRadius: R.pill, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <Icon name="play" size={20} color={C.ink} strokeWidth={2.2} />
+            <Tx size={16.5} w="xbold" color={C.ink}>Start workout</Tx>
+          </LinearGradient>
+        </Pressable>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
-
-const hdrBtn = { width: 40, height: 40, borderRadius: 20, backgroundColor: '#0000002E', alignItems: 'center', justifyContent: 'center' } as const;

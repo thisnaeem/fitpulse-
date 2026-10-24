@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Image, Pressable, View } from 'react-native';
+import { Animated, Image, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { C, R } from '../../theme';
-import { Tx, PrimaryButton, GhostButton, Ring } from '../../ui';
+import { Tx, PrimaryButton, GhostButton, Ring, GlassCircleBtn } from '../../ui';
 import { Icon } from '../../icons';
 import { workoutById } from '../../data';
 import { workoutImage } from '../../workoutImages';
@@ -111,10 +111,12 @@ export default function Player() {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
         <View style={{ flex: 1, padding: 26, justifyContent: 'center', alignItems: 'center' }}>
-          <LinearGradient colors={['#A3E63540', '#A3E6350A']} style={{ width: 130, height: 130, borderRadius: 65, alignItems: 'center', justifyContent: 'center' }}>
-            <Icon name="trophy" size={64} color={C.lime} strokeWidth={1.4} />
-          </LinearGradient>
-          <Tx size={30} w="xbold" style={{ marginTop: 26, textAlign: 'center' }}>Great work!</Tx>
+          <Ring size={148} stroke={6} progress={1} glow>
+            <LinearGradient colors={['#A3E63540', '#A3E6350A']} style={{ width: 118, height: 118, borderRadius: 59, alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="trophy" size={56} color={C.lime} strokeWidth={1.4} />
+            </LinearGradient>
+          </Ring>
+          <Tx size={32} w="xbold" style={{ marginTop: 28, textAlign: 'center' }}>Great work!</Tx>
           <Tx dim size={15} style={{ marginTop: 8, textAlign: 'center', lineHeight: 22 }}>
             {w.title} complete — {w.kcal} kcal burned, {fit.doneWorkouts} workouts in total.
           </Tx>
@@ -137,14 +139,14 @@ export default function Player() {
 
           {reward ? (
             <View style={{ flexDirection: 'row', gap: 12, marginTop: 22, width: '100%' }}>
-              <View style={{ flex: 1, backgroundColor: C.card, borderWidth: 1, borderColor: C.border, borderRadius: R.lg, paddingVertical: 14, alignItems: 'center', gap: 4 }}>
+              <View style={{ flex: 1, backgroundColor: C.glass, borderWidth: 1, borderColor: C.glassBorder, borderRadius: R.lg, paddingVertical: 16, alignItems: 'center', gap: 4 }}>
                 <Icon name="zap" size={21} color={C.lime} />
-                <Tx size={18} w="xbold">+{reward.xpEarned} XP</Tx>
+                <Tx size={20} w="xbold">+{reward.xpEarned} XP</Tx>
                 <Tx dim size={11} w="semi">EARNED</Tx>
               </View>
-              <View style={{ flex: 1, backgroundColor: C.card, borderWidth: 1, borderColor: C.border, borderRadius: R.lg, paddingVertical: 14, alignItems: 'center', gap: 4 }}>
+              <View style={{ flex: 1, backgroundColor: C.glass, borderWidth: 1, borderColor: C.glassBorder, borderRadius: R.lg, paddingVertical: 16, alignItems: 'center', gap: 4 }}>
                 <Icon name="flame" size={21} color={C.amber} />
-                <Tx size={18} w="xbold">{reward.streakDays} day{reward.streakDays === 1 ? '' : 's'}</Tx>
+                <Tx size={20} w="xbold">{reward.streakDays} day{reward.streakDays === 1 ? '' : 's'}</Tx>
                 <Tx dim size={11} w="semi">STREAK</Tx>
               </View>
             </View>
@@ -159,63 +161,86 @@ export default function Player() {
     );
   }
 
+  const img = workoutImage(w.id);
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
-      <View style={{ flex: 1, padding: 22 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Pressable onPress={() => router.back()} hitSlop={10}><Icon name="left" size={24} color={C.text} /></Pressable>
-          <Tx dim size={13} w="semi">{w.title}</Tx>
-          <Tx size={13} w="bold" color={w.tint}>{idx + 1}/{w.exercises.length}</Tx>
-        </View>
-        <View style={{ height: 8, borderRadius: 4, backgroundColor: C.ringTrack, marginTop: 16, overflow: 'hidden' }}>
-          <View style={{ width: `${progress * 100}%`, height: 8, backgroundColor: w.tint, borderRadius: 4 }} />
-        </View>
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      {/* Full-screen photo background + heavy dark overlay */}
+      {img ? <Image source={img} style={StyleSheet.absoluteFill} resizeMode="cover" /> : null}
+      <LinearGradient colors={['rgba(7,9,11,0.86)', 'rgba(7,9,11,0.93)', 'rgba(7,9,11,0.97)']}
+        locations={[0, 0.55, 1]} style={StyleSheet.absoluteFill} />
 
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <Animated.View style={{ alignItems: 'center', opacity: fade, transform: [{ translateY: slideY }] }}>
-            {workoutImage(w.id) ? (
-              <Image source={workoutImage(w.id)} style={{ width: 300, height: 128, borderRadius: R.lg, marginBottom: 20 }} resizeMode="cover" />
-            ) : null}
-            {resting ? (
-              <>
-                <Tx size={15} w="xbold" color={C.blue}>REST — up next:</Tx>
-                <Tx size={24} w="xbold" style={{ marginTop: 8, textAlign: 'center' }}>{cur.name}</Tx>
-              </>
-            ) : (
-              <>
-                <View style={{ backgroundColor: w.tint + '1E', borderRadius: R.pill, paddingHorizontal: 13, paddingVertical: 5 }}>
-                  <Tx size={12.5} w="bold" color={w.tint}>{cur.muscle.toUpperCase()}</Tx>
-                </View>
-                <Tx size={30} w="xbold" style={{ marginTop: 14, textAlign: 'center' }}>{cur.name}</Tx>
-                <Tx dim size={14.5} style={{ marginTop: 6 }}>{cur.detail}</Tx>
-              </>
-            )}
-            <Animated.View style={{ marginTop: 26, transform: [{ scale: scalePulse }] }}>
-              <Ring size={230} stroke={15} progress={resting ? left / REST_SECONDS : left / cur.seconds} color={resting ? C.blue : w.tint}>
-                <Tx size={54} w="xbold">{mm}:{ss}</Tx>
-                <Tx dim size={12.5} w="semi">{resting ? 'REST' : 'TIME LEFT'}</Tx>
-              </Ring>
+      <SafeAreaView style={{ flex: 1 }}>
+        <View style={{ flex: 1, padding: 22 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <GlassCircleBtn icon="left" size={40} iconSize={19} onPress={() => router.back()} />
+            <Tx size={13.5} w="semi" color="#FFFFFFD9">{w.title}</Tx>
+            <View style={{
+              backgroundColor: C.glassDark, borderWidth: 1, borderColor: 'rgba(255,255,255,0.22)',
+              borderRadius: R.pill, paddingHorizontal: 12, paddingVertical: 6,
+            }}>
+              <Tx size={12.5} w="bold" color="#FFF">{idx + 1}/{w.exercises.length}</Tx>
+            </View>
+          </View>
+          <View style={{ height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.16)', marginTop: 18, overflow: 'hidden' }}>
+            <View style={{ width: `${progress * 100}%`, height: 6, backgroundColor: C.lime, borderRadius: 3 }} />
+          </View>
+
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <Animated.View style={{ alignItems: 'center', opacity: fade, transform: [{ translateY: slideY }] }}>
+              {resting ? (
+                <>
+                  <Tx size={14} w="xbold" color={C.lime2}>REST</Tx>
+                  <Tx size={30} w="xbold" style={{ marginTop: 8, textAlign: 'center', lineHeight: 36 }}>{cur.name}</Tx>
+                  <Tx dim size={13.5} w="semi" style={{ marginTop: 5 }}>up next · {cur.detail}</Tx>
+                </>
+              ) : (
+                <>
+                  <View style={{
+                    backgroundColor: C.glassDark, borderWidth: 1, borderColor: 'rgba(255,255,255,0.22)',
+                    borderRadius: R.pill, paddingHorizontal: 13, paddingVertical: 5,
+                  }}>
+                    <Tx size={12} w="bold" color={w.tint}>{cur.muscle.toUpperCase()}</Tx>
+                  </View>
+                  <Tx size={34} w="xbold" style={{ marginTop: 14, textAlign: 'center', lineHeight: 40 }}>{cur.name}</Tx>
+                  <Tx dim size={14.5} style={{ marginTop: 6 }}>{cur.detail}</Tx>
+                </>
+              )}
+              <Animated.View style={{ marginTop: 30, transform: [{ scale: scalePulse }] }}>
+                <Ring size={264} stroke={15} glow trackColor="rgba(255,255,255,0.14)"
+                  progress={resting ? left / REST_SECONDS : left / cur.seconds} color={resting ? C.lime2 : C.lime}>
+                  <Tx size={13} w="xbold" color={resting ? C.lime2 : C.lime}>{resting ? 'REST' : cur.muscle.toUpperCase()}</Tx>
+                  <Tx size={76} w="xbold" style={{ lineHeight: 84 }}>{mm}:{ss}</Tx>
+                  <Tx dim size={12.5} w="semi">{resting ? 'GET READY' : 'TIME LEFT'}</Tx>
+                </Ring>
+              </Animated.View>
+              {!resting ? <Tx dim size={13.5} style={{ marginTop: 26, textAlign: 'center', paddingHorizontal: 26, lineHeight: 19 }}>{cur.tip}</Tx> : null}
             </Animated.View>
-            {!resting ? <Tx dim size={13.5} style={{ marginTop: 22, textAlign: 'center', paddingHorizontal: 26, lineHeight: 19 }}>{cur.tip}</Tx> : null}
-          </Animated.View>
-        </View>
+          </View>
 
-        <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
-          <View style={{ flex: 1 }}>
-            <GhostButton label={resting ? 'Skip rest' : 'Skip'} icon="right" onPress={() => setLeft(0)} />
+          <View style={{ flexDirection: 'row', gap: 26, alignItems: 'flex-start', justifyContent: 'center' }}>
+            <View style={{ alignItems: 'center', gap: 7, marginTop: 10 }}>
+              <GlassCircleBtn icon="right" size={56} iconSize={24} onPress={() => setLeft(0)} />
+              <Tx dim size={11} w="semi">{resting ? 'Skip rest' : 'Skip'}</Tx>
+            </View>
+            <View style={{ alignItems: 'center', gap: 7 }}>
+              <Pressable onPress={() => setRunning(!running)} style={{
+                width: 76, height: 76, borderRadius: 38, backgroundColor: C.lime,
+                alignItems: 'center', justifyContent: 'center',
+                shadowColor: C.lime, shadowOpacity: 0.45, shadowRadius: 18, shadowOffset: { width: 0, height: 6 }, elevation: 8,
+              }}>
+                <Icon name={running ? 'pause' : 'play'} size={32} color={C.ink} strokeWidth={2.2} />
+              </Pressable>
+              <Tx dim size={11} w="semi">{running ? 'Pause' : 'Resume'}</Tx>
+            </View>
+            <View style={{ alignItems: 'center', gap: 7, marginTop: 10 }}>
+              <GlassCircleBtn icon="check" size={56} iconSize={24} onPress={() => router.back()} />
+              <Tx dim size={11} w="semi">End</Tx>
+            </View>
           </View>
-          <Pressable onPress={() => setRunning(!running)} style={{
-            width: 68, height: 68, borderRadius: 34, backgroundColor: C.lime,
-            alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Icon name={running ? 'pause' : 'play'} size={30} color={C.ink} strokeWidth={2.2} />
-          </Pressable>
-          <View style={{ flex: 1 }}>
-            <GhostButton label="End" onPress={() => router.back()} />
-          </View>
+          <Tx dim size={11.5} style={{ textAlign: 'center', marginTop: 14 }}>Total time ~{Math.round(totalSeconds / 60)} min</Tx>
         </View>
-        <Tx dim size={11.5} style={{ textAlign: 'center', marginTop: 14 }}>Total time ~{Math.round(totalSeconds / 60)} min</Tx>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
